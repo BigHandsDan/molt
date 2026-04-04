@@ -61,9 +61,15 @@ export class EvalRunner {
     const metricResults: Record<string, MetricResult> = {};
 
     try {
-      const trace = this.options.useStaticTraces || !adapter
-        ? evalCase.trace
-        : await this.withTimeout(adapter(evalCase), this.options.timeoutMs ?? 30000);
+      let trace;
+      if (this.options.useStaticTraces || !adapter) {
+        if (!evalCase.trace) {
+          throw new Error(`Case "${evalCase.name}" has no trace. Provide a trace for static runs or use an AgentAdapter.`);
+        }
+        trace = evalCase.trace;
+      } else {
+        trace = await this.withTimeout(adapter(evalCase), this.options.timeoutMs ?? 30000);
+      }
 
       for (const metric of metrics) {
         try {

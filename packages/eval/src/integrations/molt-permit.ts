@@ -1,7 +1,12 @@
+import { VerificationTier } from '@molt/permit';
+import { TrustTier } from '@molt/mesh';
 import { EvalRun } from '../runner/types.js';
 
-/** Trust tier from @molt/permit. */
-export type PermitTrustTier = 'unverified' | 'moltcaptcha' | 'blockchain' | 'reputation';
+/** Trust tier from @molt/permit (re-exported for convenience). */
+export type PermitTrustTier = VerificationTier;
+
+/** Trust tier from @molt/mesh. */
+export type MeshTrustTier = TrustTier;
 
 /** Recommendation for adjusting an agent's trust tier based on eval results. */
 export interface TrustTierRecommendation {
@@ -26,23 +31,52 @@ const RANK_TO_TIER: Record<number, PermitTrustTier> = {
   3: 'reputation',
 };
 
-/** Recommend trust tier changes based on eval results. */
+const MESH_TO_PERMIT: Record<string, PermitTrustTier> = {
+  [TrustTier.INTERNAL_TRUSTED]: 'reputation',
+  [TrustTier.INTERNAL_RESTRICTED]: 'blockchain',
+  [TrustTier.EXTERNAL_PARTNER]: 'moltcaptcha',
+  [TrustTier.PUBLIC_VENDOR]: 'unverified',
+};
+
+const PERMIT_TO_MESH: Record<PermitTrustTier, TrustTier> = {
+  reputation: TrustTier.INTERNAL_TRUSTED,
+  blockchain: TrustTier.INTERNAL_RESTRICTED,
+  moltcaptcha: TrustTier.EXTERNAL_PARTNER,
+  unverified: TrustTier.PUBLIC_VENDOR,
+};
+
+/** Map a MoltMesh trust tier to the equivalent MoltPermit verification tier. */
+export function mapMeshTierToPermitTier(meshTier: MeshTrustTier): PermitTrustTier {
+  return MESH_TO_PERMIT[meshTier] ?? 'unverified';
+}
+
+/** Map a MoltPermit verification tier to the equivalent MoltMesh trust tier. */
+export function mapPermitTierToMeshTier(permitTier: PermitTrustTier): MeshTrustTier {
+  return PERMIT_TO_MESH[permitTier] ?? TrustTier.PUBLIC_VENDOR;
+}
+
+/** Recommend trust tier changes based on eval results. Accepts either Permit or Mesh tiers. */
 export function recommendTrustTier(
   agentId: string,
-  currentTier: PermitTrustTier,
+  currentTier: PermitTrustTier | MeshTrustTier,
   evalRun: EvalRun,
 ): TrustTierRecommendation {
+  // Normalize to permit tier
+  const permitTier: PermitTrustTier = Object.values(TrustTier).includes(currentTier as TrustTier)
+    ? mapMeshTierToPermitTier(currentTier as MeshTrustTier)
+    : currentTier as PermitTrustTier;
+
   const safetyScore = evalRun.aggregateScores['safety-violation'] ?? 1;
   const policyScore = evalRun.aggregateScores['policy-adherence'] ?? 1;
   const completionScore = evalRun.aggregateScores['task-completion'] ?? 0;
-  const currentRank = TIER_RANK[currentTier];
+  const currentRank = TIER_RANK[permitTier];
 
   // Safety violations → demote
   if (safetyScore < 1) {
     const recommendedRank = Math.max(0, currentRank - 1);
     return {
       agentId,
-      currentTier,
+      currentTier: permitTier,
       recommendedTier: RANK_TO_TIER[recommendedRank],
       reason: `Safety violations detected (score: ${safetyScore.toFixed(2)}). Demoting trust tier.`,
       confidence: 0.9,
@@ -54,7 +88,7 @@ export function recommendTrustTier(
     const recommendedRank = Math.max(0, currentRank - 1);
     return {
       agentId,
-      currentTier,
+      currentTier: permitTier,
       recommendedTier: RANK_TO_TIER[recommendedRank],
       reason: `Policy adherence below threshold (score: ${policyScore.toFixed(2)}). Demoting trust tier.`,
       confidence: 0.8,
@@ -67,7 +101,7 @@ export function recommendTrustTier(
     if (recommendedRank > currentRank) {
       return {
         agentId,
-        currentTier,
+        currentTier: permitTier,
         recommendedTier: RANK_TO_TIER[recommendedRank],
         reason: `Consistently high performance (completion: ${completionScore.toFixed(2)}, policy: ${policyScore.toFixed(2)}). Promoting trust tier.`,
         confidence: 0.7,
@@ -78,8 +112,8 @@ export function recommendTrustTier(
   // No change
   return {
     agentId,
-    currentTier,
-    recommendedTier: currentTier,
+    currentTier: permitTier,
+    recommendedTier: permitTier,
     reason: 'Performance within expected range. No tier change recommended.',
     confidence: 0.85,
   };

@@ -1,34 +1,15 @@
+import { TraceEvent, TraceEventType, TraceFilter } from '@molt/mesh';
 import { EvalTrace, ToolCall, TokenUsage } from '../metrics/types.js';
 
-/** A MoltMesh trace event — matches the shape from @molt/mesh TraceEvent. */
-export interface MeshTraceEvent {
-  traceId: string;
-  spanId: string;
-  parentSpanId?: string;
-  eventType: string;
-  timestamp: number;
-  durationMs: number;
-  data: {
-    contractId?: string;
-    agentId?: string;
-    policyDecision?: string;
-    input?: unknown;
-    output?: unknown;
-    error?: string;
-    tokenUsage?: { inputTokens: number; outputTokens: number };
-    estimatedCost?: number;
-    adapterProtocol?: string;
-    [key: string]: unknown;
-  };
-}
+export type { TraceEvent, TraceEventType, TraceFilter };
 
 /** Convert MoltMesh trace events into an EvalTrace for evaluation. */
-export function meshEventsToEvalTrace(events: MeshTraceEvent[], taskDescription = ''): EvalTrace {
+export function meshEventsToEvalTrace(events: TraceEvent[], taskDescription = ''): EvalTrace {
   if (events.length === 0) {
     throw new Error('Cannot convert empty events array to EvalTrace');
   }
 
-  const sorted = [...events].sort((a, b) => a.timestamp - b.timestamp);
+  const sorted = [...events].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
   const traceId = sorted[0].traceId;
   const agentId = sorted.find((e) => e.data.agentId)?.data.agentId ?? 'unknown';
 
@@ -40,16 +21,16 @@ export function meshEventsToEvalTrace(events: MeshTraceEvent[], taskDescription 
         ? e.data.input as Record<string, unknown>
         : {},
       result: e.data.output,
-      timestamp: e.timestamp,
-      durationMs: e.durationMs,
+      timestamp: new Date(e.timestamp).getTime(),
+      durationMs: e.durationMs ?? 0,
       error: e.data.error,
     }));
 
   const tokenUsage: TokenUsage = events.reduce(
     (acc, e) => {
       if (e.data.tokenUsage) {
-        acc.inputTokens += e.data.tokenUsage.inputTokens;
-        acc.outputTokens += e.data.tokenUsage.outputTokens;
+        acc.inputTokens += e.data.tokenUsage.input;
+        acc.outputTokens += e.data.tokenUsage.output;
       }
       return acc;
     },
@@ -58,18 +39,21 @@ export function meshEventsToEvalTrace(events: MeshTraceEvent[], taskDescription 
 
   const policyDecisions = sorted
     .filter((e) => e.eventType === 'policy' || e.eventType === 'cross_org_policy')
-    .map((e) => ({
-      action: e.data.contractId ?? 'unknown',
-      decision: (e.data.policyDecision === 'allow' ? 'allow' : 'deny') as 'allow' | 'deny',
-      reason: e.data.error ?? e.data.policyDecision ?? '',
-    }));
+    .map((e) => {
+      const pd = e.data.policyDecision;
+      return {
+        action: e.data.contractId ?? 'unknown',
+        decision: (pd?.allowed ? 'allow' : 'deny') as 'allow' | 'deny',
+        reason: pd?.reason ?? e.data.error ?? '',
+      };
+    });
 
   const errors = sorted.filter((e) => e.eventType === 'error' || e.data.error);
   const hasError = errors.length > 0;
 
-  const startTime = sorted[0].timestamp;
+  const startTime = new Date(sorted[0].timestamp).getTime();
   const lastEvent = sorted[sorted.length - 1];
-  const endTime = lastEvent.timestamp + lastEvent.durationMs;
+  const endTime = new Date(lastEvent.timestamp).getTime() + (lastEvent.durationMs ?? 0);
 
   return {
     traceId,

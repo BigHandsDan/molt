@@ -5,7 +5,9 @@ export interface EvalCase {
   id: string;
   name: string;
   description: string;
-  trace: EvalTrace;
+  trace?: EvalTrace;
+  /** Adversarial or live-agent input. The adapter runs the agent with this input. */
+  input?: { prompt: string; context?: Record<string, unknown> };
   tags?: string[];
 }
 

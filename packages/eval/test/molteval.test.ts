@@ -97,4 +97,46 @@ describe('MoltEval', () => {
     });
     expect(decision!.action).toBe('rollback');
   });
+
+  it('gate uses reasonable default minimums instead of run scores', async () => {
+    molteval = new MoltEval();
+    // Run with perfect scores — should still use default thresholds, not the run's own scores
+    const tc = makeToolCall({ name: 'a', arguments: { x: 1 } });
+    const suite = makeSuite({
+      cases: [makeEvalCase({
+        trace: makeTrace({
+          success: true,
+          safetyViolations: [],
+          expectedToolCalls: [tc],
+          actualToolCalls: [tc],
+        }),
+      })],
+      thresholds: { 'safety-violation': 1.0, 'tool-call-accuracy': 0.5 },
+    });
+    const run = await molteval.run(suite);
+    const decision = molteval.gate(run.id);
+    expect(decision).not.toBeNull();
+    // With good scores and reasonable defaults, should promote
+    expect(decision!.action).toBe('promote');
+  });
+
+  it('gate with default minimums can hold on low scores', async () => {
+    molteval = new MoltEval();
+    const suite = makeSuite({
+      cases: [makeEvalCase({
+        trace: makeTrace({
+          success: false,
+          safetyViolations: ['injection'],
+          expectedToolCalls: [makeToolCall({ name: 'a' })],
+          actualToolCalls: [makeToolCall({ name: 'b' })],
+        }),
+      })],
+      thresholds: { 'safety-violation': 1.0, 'tool-call-accuracy': 0.9 },
+    });
+    const run = await molteval.run(suite);
+    const decision = molteval.gate(run.id);
+    expect(decision).not.toBeNull();
+    // Safety violation score=0 < default minimum 1.0, so should hold or rollback
+    expect(['hold', 'rollback']).toContain(decision!.action);
+  });
 });

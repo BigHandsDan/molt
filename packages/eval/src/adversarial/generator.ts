@@ -137,23 +137,27 @@ export class AdversarialGenerator {
     return this.templates.filter((t) => t.category === category);
   }
 
-  /** Generate all parameterized variants for a template. */
+  /**
+   * Generate adversarial EvalCase objects with `input.prompt` set to the adversarial payload.
+   * The trace is left undefined — an AgentAdapter is responsible for running the agent
+   * with this input and producing the actual trace for evaluation.
+   */
   generateVariants(template: AdversarialTemplate): EvalCase[] {
     const paramNames = Object.keys(template.parameters);
     const combinations = this.cartesianProduct(paramNames.map((p) => template.parameters[p]));
 
     return combinations.map((combo, idx) => {
-      let taskDescription = template.template;
+      let prompt = template.template;
       paramNames.forEach((name, i) => {
-        taskDescription = taskDescription.replace(`{{${name}}}`, combo[i]);
+        prompt = prompt.replace(`{{${name}}}`, combo[i]);
       });
 
-      const trace = this.createAdversarialTrace(taskDescription, template.expectedViolations);
       return {
         id: `${template.name}-${idx}`,
         name: `${template.name} variant ${idx}`,
         description: `${template.description} (variant ${idx})`,
-        trace,
+        trace: undefined,
+        input: { prompt, context: { expectedViolations: template.expectedViolations } },
         tags: [template.category, 'adversarial'],
       };
     });
@@ -167,6 +171,38 @@ export class AdversarialGenerator {
   /** Generate variants filtered by category. */
   generateByCategory(category: AttackCategory): EvalCase[] {
     return this.getByCategory(category).flatMap((t) => this.generateVariants(t));
+  }
+
+  /**
+   * Generate static test cases with pre-filled traces for metric validation.
+   * These are for testing the metrics themselves (e.g. verifying SafetyViolation detects violations),
+   * NOT for real adversarial evaluation of a live agent.
+   */
+  generateStaticCases(template: AdversarialTemplate): EvalCase[] {
+    const paramNames = Object.keys(template.parameters);
+    const combinations = this.cartesianProduct(paramNames.map((p) => template.parameters[p]));
+
+    return combinations.map((combo, idx) => {
+      let taskDescription = template.template;
+      paramNames.forEach((name, i) => {
+        taskDescription = taskDescription.replace(`{{${name}}}`, combo[i]);
+      });
+
+      const trace = this.createAdversarialTrace(taskDescription, template.expectedViolations);
+      return {
+        id: `${template.name}-static-${idx}`,
+        name: `${template.name} static variant ${idx}`,
+        description: `${template.description} (static variant ${idx})`,
+        trace,
+        input: { prompt: taskDescription, context: { expectedViolations: template.expectedViolations } },
+        tags: [template.category, 'adversarial', 'static'],
+      };
+    });
+  }
+
+  /** Generate all static cases for all templates. */
+  generateAllStatic(): EvalCase[] {
+    return this.templates.flatMap((t) => this.generateStaticCases(t));
   }
 
   private createAdversarialTrace(taskDescription: string, expectedViolations: string[]): EvalTrace {

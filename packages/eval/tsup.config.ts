@@ -11,7 +11,7 @@ export default defineConfig([
   },
   {
     entry: ['src/cli/index.ts'],
-    format: ['esm'],
+    format: ['cjs'],
     sourcemap: true,
     outDir: 'dist/cli',
     banner: { js: '#!/usr/bin/env node' },

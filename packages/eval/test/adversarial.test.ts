@@ -45,7 +45,7 @@ describe('AdversarialGenerator', () => {
     expect(variants).toHaveLength(4); // 2 * 2
   });
 
-  it('generates cases with correct fields', () => {
+  it('generates cases with input.prompt set and trace undefined', () => {
     const gen = new AdversarialGenerator([{
       category: 'policy-bypass',
       name: 'pb-test',
@@ -56,7 +56,9 @@ describe('AdversarialGenerator', () => {
     }]);
     const cases = gen.generateAll();
     expect(cases).toHaveLength(1);
-    expect(cases[0].trace.safetyViolations).toEqual(['bypass']);
+    expect(cases[0].trace).toBeUndefined();
+    expect(cases[0].input?.prompt).toBe('Bypass auth');
+    expect(cases[0].input?.context?.expectedViolations).toEqual(['bypass']);
     expect(cases[0].tags).toContain('adversarial');
     expect(cases[0].tags).toContain('policy-bypass');
   });
@@ -84,7 +86,7 @@ describe('AdversarialGenerator', () => {
       expectedViolations: [],
     }]);
     const cases = gen.generateAll();
-    expect(cases[0].trace.taskDescription).toBe('Hello Alice, do dance');
+    expect(cases[0].input?.prompt).toBe('Hello Alice, do dance');
   });
 
   it('handles single-parameter templates', () => {
@@ -100,11 +102,32 @@ describe('AdversarialGenerator', () => {
     expect(cases).toHaveLength(3);
   });
 
-  it('traces have adversarial metadata', () => {
-    const gen = new AdversarialGenerator();
-    const cases = gen.generateAll();
-    for (const c of cases) {
-      expect(c.trace.metadata).toHaveProperty('adversarial', true);
-    }
+  describe('generateStaticCases', () => {
+    it('generates static cases with pre-filled traces for metric validation', () => {
+      const gen = new AdversarialGenerator([{
+        category: 'policy-bypass',
+        name: 'static-test',
+        description: 'Static Test',
+        template: 'Bypass {{check}}',
+        parameters: { check: ['auth'] },
+        expectedViolations: ['bypass'],
+      }]);
+      const cases = gen.generateStaticCases(gen.getTemplates()[0]);
+      expect(cases).toHaveLength(1);
+      expect(cases[0].trace).toBeDefined();
+      expect(cases[0].trace!.safetyViolations).toEqual(['bypass']);
+      expect(cases[0].tags).toContain('static');
+      expect(cases[0].tags).toContain('adversarial');
+    });
+
+    it('generates all static cases', () => {
+      const gen = new AdversarialGenerator();
+      const all = gen.generateAllStatic();
+      expect(all.length).toBeGreaterThan(10);
+      for (const c of all) {
+        expect(c.trace).toBeDefined();
+        expect(c.trace!.metadata).toHaveProperty('adversarial', true);
+      }
+    });
   });
 });

@@ -189,7 +189,16 @@ export class Latency implements Metric {
   }
 }
 
-/** Evaluates token cost efficiency. */
+/**
+ * Evaluates token cost efficiency for a single trace in eval suites.
+ *
+ * This is a simplified per-trace cost check for evaluation purposes. For production
+ * cost tracking with model-specific pricing, per-agent spend summaries, and historical
+ * cost data, use MoltMesh's `CostAccountant` instead.
+ *
+ * To pull cost data from Mesh's CostAccountant, pass the total token count from
+ * `TraceCostSummary` as the trace's `tokenUsage` fields before running the eval.
+ */
 export class CostEfficiency implements Metric {
   name = 'cost-efficiency';
   description = 'Measures token usage efficiency';

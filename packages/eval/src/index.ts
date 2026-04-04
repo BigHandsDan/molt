@@ -14,6 +14,7 @@ export {
   createDefaultMetrics,
 } from './metrics/builtin.js';
 export { MetricRegistry } from './metrics/registry.js';
+export { LatencyAggregator, type LatencyPercentiles } from './metrics/latency-aggregator.js';
 
 // Runner
 export type { EvalCase, EvalSuite, AgentAdapter, CaseResult, EvalRun, EvalVerdict, MetricThresholds } from './runner/types.js';
@@ -40,6 +41,12 @@ export { EvalStore } from './store/store.js';
 export { AdversarialGenerator, type AdversarialTemplate, type AttackCategory } from './adversarial/generator.js';
 
 // Integrations
-export { meshEventsToEvalTrace, type MeshTraceEvent } from './integrations/molt-mesh.js';
-export { recommendTrustTier, type TrustTierRecommendation, type PermitTrustTier } from './integrations/molt-permit.js';
+export { meshEventsToEvalTrace } from './integrations/molt-mesh.js';
+export type { TraceEvent, TraceEventType, TraceFilter } from './integrations/molt-mesh.js';
+export {
+  recommendTrustTier,
+  mapMeshTierToPermitTier,
+  mapPermitTierToMeshTier,
+} from './integrations/molt-permit.js';
+export type { TrustTierRecommendation, PermitTrustTier, MeshTrustTier } from './integrations/molt-permit.js';
 export { MoltDoorEvalClient, type MoltDoorEvalConfig, type EvalRating } from './integrations/molt-door.js';

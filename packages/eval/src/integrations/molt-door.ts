@@ -16,7 +16,19 @@ export interface EvalRating {
   timestamp: number;
 }
 
-/** Client for posting eval scores as ratings to MoltDoor. */
+// NOTE: Requires MoltDoor /api/agents/:id/ratings endpoint (planned feature)
+
+/**
+ * Client for posting eval scores as ratings to MoltDoor.
+ *
+ * The ratings endpoint (`POST /api/agents/:id/ratings`) is a planned MoltDoor feature.
+ * Use `buildRating()` or `dryRunPostRating()` to construct the payload without sending it.
+ *
+ * Expected API contract:
+ * - `POST /api/agents/:id/ratings` with `EvalRating` JSON body
+ * - Returns `201 Created` on success
+ * - Requires `Authorization: Bearer <apiKey>` header
+ */
 export class MoltDoorEvalClient {
   private baseUrl: string;
   private apiKey?: string;
@@ -26,19 +38,12 @@ export class MoltDoorEvalClient {
     this.apiKey = config.apiKey;
   }
 
-  /** Post eval run results as a rating to MoltDoor. */
+  /**
+   * Post eval run results as a rating to MoltDoor.
+   * NOTE: Requires MoltDoor /api/agents/:id/ratings endpoint (planned feature).
+   */
   async postRating(agentId: string, evalRun: EvalRun): Promise<{ success: boolean; error?: string }> {
-    const scores = Object.values(evalRun.aggregateScores);
-    const overallScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
-
-    const rating: EvalRating = {
-      agentId,
-      evalRunId: evalRun.id,
-      overallScore,
-      verdict: evalRun.verdict,
-      metricScores: evalRun.aggregateScores,
-      timestamp: Date.now(),
-    };
+    const rating = this.buildRating(agentId, evalRun);
 
     try {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -59,6 +64,18 @@ export class MoltDoorEvalClient {
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : String(err) };
     }
+  }
+
+  /**
+   * Build a rating payload without sending it (dry run).
+   * Useful when the MoltDoor ratings endpoint is not yet available.
+   */
+  dryRunPostRating(agentId: string, evalRun: EvalRun): { rating: EvalRating; url: string } {
+    const rating = this.buildRating(agentId, evalRun);
+    return {
+      rating,
+      url: `${this.baseUrl}/api/agents/${agentId}/ratings`,
+    };
   }
 
   /** Build a rating from an eval run without sending it. */
