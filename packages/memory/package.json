@@ -1,0 +1,55 @@
+{
+  "name": "@molt/memory",
+  "version": "0.1.0",
+  "description": "Three-tier agent memory system — keyword-indexed compressed bins with automatic promotion/demotion",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "ai-agents",
+    "memory",
+    "tiered-storage",
+    "compression",
+    "keyword-index",
+    "molt"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BigHandsDan/molt.git",
+    "directory": "packages/memory"
+  },
+  "homepage": "https://github.com/BigHandsDan/molt/tree/main/packages/memory",
+  "author": "BigHandsDan",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/node": "^20.0.0",
+    "@types/uuid": "^9.0.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.0.0"
+  }
+}

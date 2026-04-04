@@ -42,7 +42,8 @@
     "@molt/captcha": "*",
     "@molt/permit": "*",
     "@molt/mesh": "*",
-    "@molt/eval": "*"
+    "@molt/eval": "*",
+    "@molt/memory": "*"
   },
   "devDependencies": {
     "tsup": "^8.0.0",
