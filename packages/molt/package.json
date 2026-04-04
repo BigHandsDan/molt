@@ -1,0 +1,50 @@
+{
+  "name": "molt",
+  "version": "0.1.0",
+  "description": "Unified AI agent governance — captcha, permissions, and mesh networking in one package",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "echo 'No tests — meta-package only'",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "ai-agents",
+    "governance",
+    "captcha",
+    "permissions",
+    "mesh",
+    "molt"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BigHandsDan/molt.git",
+    "directory": "packages/molt"
+  },
+  "homepage": "https://github.com/BigHandsDan/molt",
+  "author": "BigHandsDan",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@molt/captcha": "*",
+    "@molt/permit": "*",
+    "@molt/mesh": "*"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0"
+  }
+}

@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoltMesh — Operator Console</title>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=general-sans@400,500,600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#141312;--surface:#1C1B19;--surface2:#242320;--border:#393836;
+  --text:#CDCCCA;--muted:#797876;--faint:#5A5957;
+  --primary:#4F98A3;--primary-hover:#227F8B;
+  --success:#6DAA45;--error:#D163A7;--warning:#BB653B;--gold:#E8AF34;
+  --font-display:'Satoshi','Helvetica Neue',sans-serif;
+  --font-body:'General Sans','Helvetica Neue',sans-serif;
+  --radius:8px;--radius-sm:5px;
+}
+html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{min-height:100dvh;font-family:var(--font-body);font-size:14px;line-height:1.5;color:var(--text);background:var(--bg)}
+button{cursor:pointer;font:inherit;color:inherit;background:none;border:none}
+input{font:inherit;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px}
+input:focus{outline:2px solid var(--primary);outline-offset:1px}
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:16px}
+.logo-group{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.logo-text{font-family:var(--font-display);font-weight:700;font-size:16px;letter-spacing:-0.02em}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.btn{padding:6px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;transition:all 150ms}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-hover)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-success{background:var(--success);color:#fff}
+.btn-error{background:var(--error);color:#fff}
+.badge-count{background:var(--error);color:#fff;font-size:11px;font-weight:600;padding:2px 7px;border-radius:99px;margin-left:4px}
+
+/* TABS */
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;padding:0 24px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-size:13px;font-weight:500;padding:8px 14px;color:var(--muted);white-space:nowrap;border-radius:6px;transition:all 150ms}
+.tab:hover{color:var(--text);background:rgba(79,152,163,0.08)}
+.tab.active{color:var(--primary);background:rgba(79,152,163,0.12);font-weight:600}
+
+/* MAIN */
+main{max-width:1280px;margin:0 auto;padding:20px 24px 60px}
+.panel{display:none}.panel.active{display:block}
+
+/* CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.stat-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px}
+.stat-value{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.stat-sub{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* TABLES */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 14px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--muted);background:var(--surface2);border-bottom:1px solid var(--border)}
+td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.clickable{cursor:pointer;transition:background 100ms}
+tr.clickable:hover{background:var(--surface2)}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.02em}
+.badge-success{background:rgba(109,170,69,0.15);color:var(--success)}
+.badge-error{background:rgba(209,99,167,0.15);color:var(--error)}
+.badge-warning{background:rgba(187,101,59,0.15);color:var(--warning)}
+.badge-info{background:rgba(79,152,163,0.15);color:var(--primary)}
+.badge-gold{background:rgba(232,175,52,0.15);color:var(--gold)}
+.badge-muted{background:rgba(90,89,87,0.2);color:var(--muted)}
+
+/* TRUST TIER BADGES */
+.tier-trusted{background:rgba(109,170,69,0.15);color:var(--success)}
+.tier-restricted{background:rgba(232,175,52,0.15);color:var(--gold)}
+.tier-partner{background:rgba(79,152,163,0.15);color:var(--primary)}
+.tier-public{background:rgba(209,99,167,0.15);color:var(--error)}
+
+/* ORG TIER BADGES */
+.tier-owner{background:rgba(109,170,69,0.15);color:var(--success)}
+.tier-org-partner{background:rgba(79,152,163,0.15);color:var(--primary)}
+.tier-vendor{background:rgba(232,175,52,0.15);color:var(--gold)}
+.tier-org-public{background:rgba(209,99,167,0.15);color:var(--error)}
+
+/* GRANT STATUS BADGES */
+.grant-active{background:rgba(109,170,69,0.15);color:var(--success)}
+.grant-suspended{background:rgba(232,175,52,0.15);color:var(--gold)}
+.grant-expired{background:rgba(90,89,87,0.2);color:var(--muted)}
+.grant-revoked{background:rgba(209,99,167,0.15);color:var(--error)}
+
+/* QUOTA/USAGE BAR */
+.usage-bar{height:8px;background:var(--surface2);border-radius:4px;margin:4px 0;overflow:hidden;position:relative}
+.usage-fill{height:100%;border-radius:4px;transition:width 300ms}
+.usage-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+
+/* NAMESPACE EXPAND */
+.ns-toggle{cursor:pointer;user-select:none;padding:6px 0;font-size:13px;color:var(--primary)}
+.ns-toggle:hover{text-decoration:underline}
+.ns-list{padding-left:16px;margin-top:4px;display:none}
+.ns-list.open{display:block}
+
+/* TRACE DETAIL */
+.trace-detail{background:var(--surface2);padding:16px;border-top:1px solid var(--border)}
+.timeline-svg{width:100%;height:auto;display:block;margin:8px 0 12px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:12px}
+.detail-grid dt{color:var(--muted)}.detail-grid dd{color:var(--text)}
+
+/* AGENT/CONTRACT CARDS */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.card-title{font-family:var(--font-display);font-weight:700;font-size:15px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.card-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);padding:3px 0}
+.card-row span:last-child{color:var(--text);font-variant-numeric:tabular-nums}
+
+/* BUDGET BAR */
+.budget-bar{height:6px;background:var(--surface2);border-radius:3px;margin:8px 0 4px;overflow:hidden}
+.budget-fill{height:100%;border-radius:3px;transition:width 300ms}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:8px;margin-bottom:16px;align-items:center}
+.filter-btn{padding:4px 12px;font-size:12px;border-radius:4px;color:var(--muted);border:1px solid var(--border);transition:all 150ms}
+.filter-btn:hover,.filter-btn.active{color:var(--primary);border-color:var(--primary);background:rgba(79,152,163,0.08)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:90%;max-width:480px}
+.modal h3{font-family:var(--font-display);font-size:16px;margin-bottom:12px}
+.modal input{width:100%;margin-bottom:12px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+
+/* SECTION */
+.section-title{font-family:var(--font-display);font-size:15px;font-weight:700;margin-bottom:12px;color:var(--text)}
+.section{margin-bottom:24px}
+
+/* ACTIVITY */
+.activity-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.activity-item:last-child{border-bottom:none}
+.activity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.activity-time{color:var(--faint);font-size:11px;margin-left:auto;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* APPROVALS */
+.approval-card{background:rgba(232,175,52,0.06);border:1px solid var(--gold);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.approval-actions{display:flex;gap:8px;margin-top:8px}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:40px;color:var(--muted);font-size:13px}
+
+/* EXCHANGE CATEGORIES */
+.cat-research{background:rgba(79,152,163,0.15);color:var(--primary)}
+.cat-analysis{background:rgba(109,170,69,0.15);color:var(--success)}
+.cat-code{background:rgba(187,101,59,0.15);color:var(--warning)}
+.cat-writing{background:rgba(209,99,167,0.15);color:var(--error)}
+.cat-data{background:rgba(232,175,52,0.15);color:var(--gold)}
+.cat-compliance{background:rgba(90,89,87,0.25);color:var(--text)}
+.cat-custom{background:rgba(90,89,87,0.2);color:var(--muted)}
+
+/* PRICING BADGES */
+.price-free{background:rgba(109,170,69,0.15);color:var(--success)}
+.price-per_request,.price-per_token{background:rgba(79,152,163,0.15);color:var(--primary)}
+.price-subscription{background:rgba(232,175,52,0.15);color:var(--gold)}
+
+/* RATING STARS */
+.stars{color:var(--gold);font-size:13px;letter-spacing:1px}
+.stars .empty{color:var(--faint)}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .header{flex-wrap:wrap;gap:8px;padding:8px 16px}
+  .tabs{padding:0 16px}
+  main{padding:16px}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .detail-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="logo-group">
+    <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+      <rect x="2" y="2" width="28" height="28" rx="6" stroke="currentColor" stroke-width="2"/>
+      <circle cx="10" cy="10" r="2.5" fill="var(--primary)"/>
+      <circle cx="22" cy="10" r="2.5" fill="var(--primary)"/>
+      <circle cx="10" cy="22" r="2.5" fill="var(--primary)"/>
+      <circle cx="22" cy="22" r="2.5" fill="var(--primary)"/>
+      <circle cx="16" cy="16" r="3" fill="var(--primary)" opacity="0.6"/>
+      <line x1="10" y1="10" x2="16" y2="16" stroke="var(--primary)" stroke-width="1.5"/>
+      <line x1="22" y1="10" x2="16" y2="16" stroke="var(--primary)" stroke-width="1.5"/>
+      <line x1="10" y1="22" x2="16" y2="16" stroke="var(--primary)" stroke-width="1.5"/>
+      <line x1="22" y1="22" x2="16" y2="16" stroke="var(--primary)" stroke-width="1.5"/>
+    </svg>
+    <span class="logo-text">MoltMesh</span>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="dashboard">Dashboard</button>
+    <button class="tab" data-tab="workflows">Workflows</button>
+    <button class="tab" data-tab="contracts">Contracts</button>
+    <button class="tab" data-tab="agents">Agents</button>
+    <button class="tab" data-tab="policies">Policies</button>
+    <button class="tab" data-tab="federation">Federation</button>
+    <button class="tab" data-tab="organizations">Organizations</button>
+    <button class="tab" data-tab="exchange">Exchange</button>
+    <button class="tab" data-tab="deadletters">Dead Letters</button>
+  </nav>
+  <div class="header-right">
+    <span id="approvalBadge" style="display:none"><span class="badge badge-gold">Pending</span><span class="badge-count" id="approvalCount">0</span></span>
+    <button class="btn btn-primary" onclick="openSubmitModal()">Submit Task</button>
+  </div>
+</header>
+
+<main>
+  <!-- DASHBOARD -->
+  <div class="panel active" id="panel-dashboard">
+    <div class="stat-grid" id="statsGrid"></div>
+    <div class="section" id="approvalsSection" style="display:none">
+      <div class="section-title">Pending Approvals</div>
+      <div id="approvalsList"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
+      <div class="section">
+        <div class="section-title">Recent Activity</div>
+        <div class="table-wrap"><div id="activityFeed" style="padding:8px 14px"></div></div>
+      </div>
+      <div class="section">
+        <div class="section-title">System Health</div>
+        <div class="table-wrap"><div id="healthPanel" style="padding:8px 14px"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKFLOWS -->
+  <div class="panel" id="panel-workflows">
+    <div class="section-title">Workflow Traces</div>
+    <div class="table-wrap"><table><thead><tr>
+      <th>Trace ID</th><th>Contract</th><th>Agent</th><th>Source Org</th><th>Target Org</th><th>Status</th><th>Duration</th><th>Tokens</th><th>Time</th>
+    </tr></thead><tbody id="tracesBody"></tbody></table></div>
+  </div>
+
+  <!-- CONTRACTS -->
+  <div class="panel" id="panel-contracts">
+    <div class="section-title">Registered Contracts</div>
+    <div class="card-grid" id="contractsGrid"></div>
+  </div>
+
+  <!-- AGENTS -->
+  <div class="panel" id="panel-agents">
+    <div class="section-title">Agent Registry</div>
+    <div class="card-grid" id="agentsGrid"></div>
+  </div>
+
+  <!-- POLICIES -->
+  <div class="panel" id="panel-policies">
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="allow">Allowed</button>
+      <button class="filter-btn" data-filter="deny">Denied</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr>
+      <th>Time</th><th>Agent</th><th>Contract</th><th>Decision</th><th>Rule</th><th>Reason</th>
+    </tr></thead><tbody id="policyBody"></tbody></table></div>
+  </div>
+
+  <!-- FEDERATION -->
+  <div class="panel" id="panel-federation">
+    <div class="section-title">Federation Grants</div>
+    <div class="filter-bar" id="grantFilterBar">
+      <button class="filter-btn active" data-gfilter="all">All</button>
+      <button class="filter-btn" data-gfilter="active">Active</button>
+      <button class="filter-btn" data-gfilter="suspended">Suspended</button>
+      <button class="filter-btn" data-gfilter="expired">Expired</button>
+      <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openGrantModal()">Create Grant</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr>
+      <th>From Org</th><th>To Org</th><th>Capabilities</th><th>Status</th><th>Token Usage</th><th>Cost Usage</th><th>Created</th>
+    </tr></thead><tbody id="grantsBody"></tbody></table></div>
+  </div>
+
+  <!-- ORGANIZATIONS -->
+  <div class="panel" id="panel-organizations">
+    <div class="section-title">Organizations</div>
+    <div class="card-grid" id="orgsGrid"></div>
+  </div>
+
+  <!-- EXCHANGE -->
+  <div class="panel" id="panel-exchange">
+    <div class="filter-bar" id="exchangeViewBar">
+      <button class="filter-btn active" data-eview="marketplace">Marketplace</button>
+      <button class="filter-btn" data-eview="provider">My Services</button>
+      <button class="filter-btn" data-eview="billing">Billing</button>
+    </div>
+
+    <!-- Marketplace View -->
+    <div id="exchange-marketplace">
+      <div style="display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap">
+        <input type="text" id="exchangeSearch" placeholder="Search services..." style="flex:1;min-width:200px" oninput="renderExchange()">
+        <div id="exchangeCategoryFilters" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+        <select id="exchangeSort" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:12px" onchange="renderExchange()">
+          <option value="popular">Popular</option>
+          <option value="newest">Newest</option>
+          <option value="rating">Highest Rated</option>
+        </select>
+      </div>
+      <div class="card-grid" id="exchangeGrid"></div>
+    </div>
+
+    <!-- Provider View -->
+    <div id="exchange-provider" style="display:none">
+      <div class="section-title">My Published Services</div>
+      <div class="table-wrap"><table><thead><tr>
+        <th>Service</th><th>Status</th><th>Usage</th><th>Revenue</th><th>Avg Rating</th><th>Earnings (7d)</th>
+      </tr></thead><tbody id="providerBody"></tbody></table></div>
+    </div>
+
+    <!-- Billing View -->
+    <div id="exchange-billing" style="display:none">
+      <div class="stat-grid" id="billingStats"></div>
+      <div class="section" style="margin-top:16px">
+        <div class="section-title">Recent Transactions</div>
+        <div class="table-wrap"><table><thead><tr>
+          <th>Date</th><th>Type</th><th>Description</th><th>Amount</th><th>Balance After</th>
+        </tr></thead><tbody id="billingBody"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEAD LETTERS -->
+  <div class="panel" id="panel-deadletters">
+    <div class="section-title">Dead Letter Queue</div>
+    <div class="table-wrap"><table><thead><tr>
+      <th>ID</th><th>Contract</th><th>Reason</th><th>Attempts</th><th>Created</th><th>Status</th><th></th>
+    </tr></thead><tbody id="deadBody"></tbody></table></div>
+  </div>
+</main>
+
+<!-- Submit Modal -->
+<div class="modal-overlay" id="submitModal">
+  <div class="modal">
+    <h3>Submit Task to Bus</h3>
+    <input type="text" id="taskInput" placeholder="e.g. Research the current state of agent interoperability" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeSubmitModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitTask()">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Grant Modal -->
+<div class="modal-overlay" id="grantModal">
+  <div class="modal">
+    <h3>Create Federation Grant</h3>
+    <input type="text" id="grantFromOrg" placeholder="From Org ID (e.g. acme-corp)" autocomplete="off">
+    <input type="text" id="grantToOrg" placeholder="To Org ID (e.g. widget-inc)" autocomplete="off">
+    <input type="text" id="grantCaps" placeholder="Capabilities (comma-separated, e.g. research,review)" autocomplete="off">
+    <input type="number" id="grantMaxTokens" placeholder="Max Tokens/Day (e.g. 50000)" value="50000">
+    <input type="number" id="grantMaxCost" placeholder="Max Cost/Day (e.g. 10)" value="10" step="0.01">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeGrantModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createGrant()">Create</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// === STATE ===
+let currentFilter = 'all';
+let currentGrantFilter = 'all';
+let expandedTrace = null;
+let allData = { traces: [], contracts: [], agents: [], policyLog: [], deadLetters: [], approvals: [], costs: [], orgs: [], grants: [], grantUsages: {}, exchangeListings: [], exchangeStats: {} };
+let currentExchangeView = 'marketplace';
+let currentExchangeCategory = 'all';
+
+// === TABS ===
+document.getElementById('tabs').addEventListener('click', e => {
+  if (!e.target.classList.contains('tab')) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  e.target.classList.add('active');
+  document.getElementById('panel-' + e.target.dataset.tab).classList.add('active');
+});
+
+// === HELPERS ===
+function relTime(ts) {
+  if (!ts) return '';
+  const diff = Date.now() - new Date(ts).getTime();
+  if (diff < 1000) return 'now';
+  if (diff < 60000) return Math.floor(diff/1000) + 's ago';
+  if (diff < 3600000) return Math.floor(diff/60000) + 'm ago';
+  return Math.floor(diff/3600000) + 'h ago';
+}
+
+function trunc(s, n) { return s && s.length > n ? s.slice(0, n) + '...' : s || ''; }
+
+function tierBadge(tier) {
+  const map = {
+    'internal_trusted': ['tier-trusted', 'TRUSTED'],
+    'internal_restricted': ['tier-restricted', 'RESTRICTED'],
+    'external_partner': ['tier-partner', 'PARTNER'],
+    'public_vendor': ['tier-public', 'PUBLIC'],
+  };
+  const [cls, label] = map[tier] || ['badge-muted', tier];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function statusBadge(status) {
+  const map = {
+    'success': 'badge-success', 'failure': 'badge-error', 'denied': 'badge-error',
+    'timeout': 'badge-warning', 'pending_approval': 'badge-gold', 'circuit_open': 'badge-warning',
+  };
+  return `<span class="badge ${map[status] || 'badge-muted'}">${status}</span>`;
+}
+
+function circuitBadge(state) {
+  const map = { 'closed': 'badge-success', 'open': 'badge-error', 'half_open': 'badge-warning' };
+  return `<span class="badge ${map[state] || 'badge-muted'}">${state}</span>`;
+}
+
+function fmt$(n) { return '$' + (n || 0).toFixed(4); }
+function fmtN(n) { return (n || 0).toLocaleString(); }
+
+function orgTierBadge(tier) {
+  const map = {
+    'owner': ['tier-owner', 'OWNER'],
+    'partner': ['tier-org-partner', 'PARTNER'],
+    'vendor': ['tier-vendor', 'VENDOR'],
+    'public': ['tier-org-public', 'PUBLIC'],
+  };
+  const [cls, label] = map[tier] || ['badge-muted', tier || 'unknown'];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function grantStatusBadge(status) {
+  const map = {
+    'active': 'grant-active', 'suspended': 'grant-suspended',
+    'expired': 'grant-expired', 'revoked': 'grant-revoked',
+  };
+  return `<span class="badge ${map[status] || 'badge-muted'}">${status}</span>`;
+}
+
+function usageBar(used, limit, color) {
+  if (!limit) return '';
+  const pct = Math.min(100, Math.round((used / limit) * 100));
+  const barColor = pct > 80 ? 'var(--error)' : pct > 50 ? 'var(--warning)' : (color || 'var(--success)');
+  return `<div>
+    <div class="usage-label"><span>${fmtN(used)}</span><span>${fmtN(limit)}</span></div>
+    <div class="usage-bar"><div class="usage-fill" style="width:${pct}%;background:${barColor}"></div></div>
+  </div>`;
+}
+
+// === FETCH DATA ===
+async function fetchAll() {
+  try {
+    const [traceSummaries, contracts, agents, policyLog, deadLetters, approvals, costs, orgsRes, grantsRes, exchangeListingsRes, exchangeStatsRes] = await Promise.all([
+      fetch('/api/traces').then(r => r.json()).catch(() => []),
+      fetch('/api/contracts').then(r => r.json()).catch(() => []),
+      fetch('/api/agents').then(r => r.json()).catch(() => []),
+      fetch('/api/policy-log').then(r => r.json()).catch(() => []),
+      fetch('/api/dead-letters?includeResolved=true').then(r => r.json()).catch(() => []),
+      fetch('/api/approvals').then(r => r.json()).catch(() => []),
+      fetch('/api/costs').then(r => r.json()).catch(() => []),
+      fetch('/api/v1/orgs').then(r => r.json()).catch(() => ({ data: [] })),
+      fetch('/api/v1/grants').then(r => r.json()).catch(() => ({ data: [] })),
+      fetch('/api/exchange/listings').then(r => r.json()).catch(() => ({ data: [] })),
+      fetch('/api/exchange/stats').then(r => r.json()).catch(() => ({ data: {} })),
+    ]);
+    // Fetch full events for each trace
+    const traceDetails = await Promise.all(
+      traceSummaries.map(t => fetch(`/api/traces/${t.traceId}`).then(r => r.json()).catch(() => []))
+    );
+    const traces = traceDetails.flat();
+    const orgs = orgsRes.data || [];
+    const grants = grantsRes.data || [];
+
+    // Fetch grant usage for each grant
+    const grantUsages = {};
+    await Promise.all(grants.map(async g => {
+      try {
+        const r = await fetch(`/api/v1/grants/${g.grantId}/usage`);
+        const j = await r.json();
+        grantUsages[g.grantId] = j.data || null;
+      } catch { grantUsages[g.grantId] = null; }
+    }));
+
+    const exchangeListings = exchangeListingsRes.data || [];
+    const exchangeStats = exchangeStatsRes.data || {};
+
+    allData = { traces, traceSummaries, contracts, agents, policyLog, deadLetters, approvals, costs, orgs, grants, grantUsages, exchangeListings, exchangeStats };
+    render();
+  } catch(e) { console.error('Fetch error:', e); }
+}
+
+// === RENDER ===
+function render() {
+  renderDashboard();
+  renderWorkflows();
+  renderContracts();
+  renderAgents();
+  renderPolicies();
+  renderFederation();
+  renderOrganizations();
+  renderExchange();
+  renderDeadLetters();
+  renderApprovals();
+}
+
+function renderDashboard() {
+  const { traces, agents, policyLog, costs, grants } = allData;
+  const totalWorkflows = traces.length;
+  const activeAgents = agents.length;
+  const allowed = policyLog.filter(e => e.data?.policyDecision?.allowed).length;
+  const denied = policyLog.filter(e => e.data?.policyDecision && !e.data.policyDecision.allowed).length;
+  const totalCost = costs.reduce((s, c) => s + (c.totalCost || 0), 0);
+  const totalPolicies = allowed + denied;
+  const allowPct = totalPolicies > 0 ? Math.round((allowed / totalPolicies) * 100) : 0;
+  const federatedWorkflows = traces.filter(e => e.eventType === 'federation_check').length;
+  const activeGrants = (grants || []).filter(g => g.status === 'active').length;
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total Workflows</div><div class="stat-value">${fmtN(totalWorkflows)}</div></div>
+    <div class="stat-card"><div class="stat-label">Active Agents</div><div class="stat-value">${activeAgents}</div></div>
+    <div class="stat-card"><div class="stat-label">Policy Decisions</div><div class="stat-value">${fmtN(totalPolicies)}</div>
+      <div class="stat-sub"><span style="color:var(--success)">${allowed} allowed</span> / <span style="color:var(--error)">${denied} denied</span>
+      <div class="budget-bar" style="margin-top:6px"><div class="budget-fill" style="width:${allowPct}%;background:var(--success)"></div></div></div></div>
+    <div class="stat-card"><div class="stat-label">Total Cost</div><div class="stat-value">${fmt$(totalCost)}</div></div>
+    <div class="stat-card"><div class="stat-label">Federated Workflows</div><div class="stat-value">${fmtN(federatedWorkflows)}</div></div>
+    <div class="stat-card"><div class="stat-label">Active Grants</div><div class="stat-value">${activeGrants}</div></div>`;
+
+  // Recent activity
+  const recentEvents = traces.slice(0, 15);
+  const feed = document.getElementById('activityFeed');
+  if (recentEvents.length === 0) {
+    feed.innerHTML = '<div class="empty">No activity yet. Submit a task to get started.</div>';
+  } else {
+    feed.innerHTML = recentEvents.map(e => {
+      const dotColor = e.data?.policyDecision?.allowed === false ? 'var(--error)' :
+                        e.eventType === 'error' ? 'var(--error)' :
+                        e.eventType === 'response' ? 'var(--success)' : 'var(--primary)';
+      const orgLabel = e.data?.sourceOrgId && e.data.sourceOrgId !== 'default'
+        ? `<span class="badge badge-info" style="font-size:10px;padding:1px 5px">${e.data.sourceOrgId}</span> ` : '';
+      return `<div class="activity-item">
+        <span class="activity-dot" style="background:${dotColor}"></span>
+        <span style="color:var(--muted)">${e.eventType}</span>
+        <span>${e.data?.contractId || ''}</span>
+        <span style="color:var(--faint)">${orgLabel}${e.data?.agentId ? trunc(e.data.agentId, 16) : ''}</span>
+        <span class="activity-time">${relTime(e.timestamp)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // System health
+  const health = document.getElementById('healthPanel');
+  health.innerHTML = agents.map(a => `
+    <div class="activity-item">
+      <span>${a.name || a.agentId}</span>
+      ${circuitBadge(a.circuitState || 'closed')}
+      <span class="activity-time">${tierBadge(a.trustTier)}</span>
+    </div>
+  `).join('') || '<div class="empty">No agents registered.</div>';
+}
+
+function renderWorkflows() {
+  const body = document.getElementById('tracesBody');
+  // Group trace events by traceId
+  const traceMap = {};
+  allData.traces.forEach(e => {
+    if (!traceMap[e.traceId]) traceMap[e.traceId] = [];
+    traceMap[e.traceId].push(e);
+  });
+
+  const traceIds = Object.keys(traceMap);
+  if (traceIds.length === 0) { body.innerHTML = '<tr><td colspan="9" class="empty">No workflows yet.</td></tr>'; return; }
+
+  body.innerHTML = traceIds.map(tid => {
+    const events = traceMap[tid];
+    const first = events[0];
+    const last = events[events.length - 1];
+    const contractId = first.data?.contractId || '';
+    const agentId = events.find(e => e.data?.agentId)?.data?.agentId || '';
+    const status = last.eventType === 'error' ? 'failure' :
+                   events.some(e => e.data?.policyDecision?.allowed === false) ? 'denied' : 'success';
+    const totalDuration = events.reduce((s, e) => s + (e.durationMs || 0), 0);
+    const totalTokens = events.reduce((s, e) => s + (e.data?.tokenUsage?.input || 0) + (e.data?.tokenUsage?.output || 0), 0);
+    const isExpanded = expandedTrace === tid;
+
+    // Extract org info from federation events
+    const fedEvent = events.find(e => e.eventType === 'federation_check' || e.eventType === 'cross_org_policy');
+    const nsEvent = events.find(e => e.eventType === 'namespace_resolve');
+    const sourceOrg = fedEvent?.data?.sourceOrgId || nsEvent?.data?.sourceOrgId || '';
+    const targetOrg = fedEvent?.data?.targetOrgId || '';
+
+    let row = `<tr class="clickable" onclick="toggleTrace('${tid}')">
+      <td style="font-family:monospace;font-size:12px;color:var(--faint)">${trunc(tid, 12)}</td>
+      <td>${contractId}</td>
+      <td style="color:var(--muted)">${trunc(agentId, 18)}</td>
+      <td style="color:var(--muted);font-size:12px">${sourceOrg && sourceOrg !== 'default' ? sourceOrg : ''}</td>
+      <td style="color:var(--muted);font-size:12px">${targetOrg && targetOrg !== 'default' ? targetOrg : ''}</td>
+      <td>${statusBadge(status)}</td>
+      <td style="font-variant-numeric:tabular-nums">${totalDuration}ms</td>
+      <td style="font-variant-numeric:tabular-nums">${fmtN(totalTokens)}</td>
+      <td style="color:var(--faint)">${relTime(first.timestamp)}</td>
+    </tr>`;
+
+    if (isExpanded) {
+      row += `<tr><td colspan="9" style="padding:0">${renderTraceDetail(events)}</td></tr>`;
+    }
+    return row;
+  }).join('');
+}
+
+function toggleTrace(tid) {
+  expandedTrace = expandedTrace === tid ? null : tid;
+  renderWorkflows();
+}
+
+function renderTraceDetail(events) {
+  const totalDuration = Math.max(events.reduce((s, e) => s + (e.durationMs || 0), 0), 1);
+  const svgW = 800, barH = 28, gap = 4, padL = 100, padR = 20;
+  const barArea = svgW - padL - padR;
+  const svgH = events.length * (barH + gap) + 20;
+
+  const colorMap = {
+    'ingress': 'var(--primary)', 'validate': 'var(--primary)',
+    'policy': '#4F98A3', 'dispatch': 'var(--success)',
+    'response': 'var(--success)', 'error': 'var(--error)',
+    'translate': 'var(--gold)', 'timeout': 'var(--warning)',
+    'retry': 'var(--gold)', 'dead_letter': 'var(--error)',
+    'approval_pending': 'var(--gold)',
+    'federation_check': 'var(--primary)', 'cross_org_policy': '#4F98A3',
+    'namespace_resolve': 'var(--muted)', 'budget_exceeded': 'var(--error)',
+    'pending_approval': 'var(--gold)',
+  };
+
+  let cumX = 0;
+  const bars = events.map((e, i) => {
+    const dur = e.durationMs || 1;
+    const w = Math.max((dur / totalDuration) * barArea, 30);
+    const x = padL + cumX;
+    const y = 10 + i * (barH + gap);
+    cumX += w + 2;
+    const color = colorMap[e.eventType] || 'var(--muted)';
+    const policyIcon = e.data?.policyDecision ? (e.data.policyDecision.allowed ? ' ✓' : ' ✗') : '';
+    return `<g>
+      <text x="${padL - 6}" y="${y + barH/2 + 4}" text-anchor="end" fill="var(--muted)" font-size="11">${e.eventType}</text>
+      <rect x="${x}" y="${y}" width="${w}" height="${barH}" rx="4" fill="${color}" opacity="0.7"/>
+      <text x="${x + 6}" y="${y + barH/2 + 4}" fill="#fff" font-size="10" font-weight="500">${dur}ms${policyIcon}</text>
+    </g>`;
+  }).join('');
+
+  const policyEvent = events.find(e => e.eventType === 'policy');
+  const policyInfo = policyEvent?.data?.policyDecision;
+  const tokenEvent = events.find(e => e.data?.tokenUsage);
+  const tokens = tokenEvent?.data?.tokenUsage;
+  const errorEvent = events.find(e => e.eventType === 'error');
+
+  const fedCheckEvent = events.find(e => e.eventType === 'federation_check');
+  const crossOrgEvent = events.find(e => e.eventType === 'cross_org_policy');
+
+  return `<div class="trace-detail">
+    <svg class="timeline-svg" viewBox="0 0 ${svgW} ${svgH}" style="font-family:var(--font-body);max-height:300px">${bars}</svg>
+    <div class="detail-grid">
+      ${policyInfo ? `<dt>Policy Decision</dt><dd>${policyInfo.allowed ? '<span style="color:var(--success)">ALLOWED</span>' : '<span style="color:var(--error)">DENIED</span>'} — ${policyInfo.reason || policyInfo.ruleId || ''}</dd>` : ''}
+      ${tokens ? `<dt>Token Usage</dt><dd>${fmtN(tokens.input)} in / ${fmtN(tokens.output)} out</dd>` : ''}
+      ${errorEvent ? `<dt>Error</dt><dd style="color:var(--error)">${errorEvent.data?.error || 'Unknown error'}</dd>` : ''}
+      ${fedCheckEvent ? `<dt>Federation Check</dt><dd>Grant: ${fedCheckEvent.data?.grantId || 'none'} — ${fedCheckEvent.data?.grantValid ? '<span style="color:var(--success)">VALID</span>' : '<span style="color:var(--error)">INVALID</span>'} ${fedCheckEvent.data?.grantReason || ''}</dd>` : ''}
+      ${crossOrgEvent ? `<dt>Cross-Org Policy</dt><dd>${crossOrgEvent.data?.sourceOrgId} → ${crossOrgEvent.data?.targetOrgId}: ${crossOrgEvent.data?.finalDecision ? '<span style="color:var(--success)">ALLOWED</span>' : '<span style="color:var(--error)">DENIED</span>'}</dd>` : ''}
+      <dt>Trace ID</dt><dd style="font-family:monospace;font-size:11px;color:var(--faint)">${events[0]?.traceId}</dd>
+    </div>
+  </div>`;
+}
+
+function renderContracts() {
+  const grid = document.getElementById('contractsGrid');
+  if (allData.contracts.length === 0) { grid.innerHTML = '<div class="empty">No contracts registered.</div>'; return; }
+  grid.innerHTML = allData.contracts.map(c => {
+    const agents = allData.agents.filter(a => a.capabilities?.includes(c.capability));
+    return `<div class="card">
+      <div class="card-title">${c.contractId} ${statusBadge(c.securityClass || 'internal')}</div>
+      <div class="card-row"><span>Capability</span><span>${c.capability}</span></div>
+      <div class="card-row"><span>Version</span><span>${c.version}</span></div>
+      <div class="card-row"><span>Timeout</span><span>${c.timeout ? c.timeout + 'ms' : 'none'}</span></div>
+      <div class="card-row"><span>Retries</span><span>${c.retryPolicy?.maxRetries || 0}</span></div>
+      <div class="card-row"><span>Approval Required</span><span>${c.approvalRequired ? 'Yes' : 'No'}</span></div>
+      <div class="card-row"><span>Agents</span><span>${agents.length} available</span></div>
+      <div class="card-row"><span>Required Tools</span><span>${(c.requiredTools || []).join(', ') || 'none'}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function renderAgents() {
+  const grid = document.getElementById('agentsGrid');
+  if (allData.agents.length === 0) { grid.innerHTML = '<div class="empty">No agents registered.</div>'; return; }
+  // Build org map for tier lookup
+  const orgMap = {};
+  (allData.orgs || []).forEach(o => orgMap[o.orgId] = o);
+  grid.innerHTML = allData.agents.map(a => {
+    const spend = a.spend || {};
+    const budget = a.budget;
+    const budgetPct = budget ? Math.min(100, Math.round((budget.currentDayUsage / budget.maxTokensPerDay) * 100)) : 0;
+    const budgetColor = budgetPct > 80 ? 'var(--error)' : budgetPct > 50 ? 'var(--warning)' : 'var(--success)';
+    const agentOrg = orgMap[a.orgId];
+    const orgBadge = agentOrg ? orgTierBadge(agentOrg.tier) : '';
+    return `<div class="card">
+      <div class="card-title">${a.name || a.agentId} ${tierBadge(a.trustTier)} ${orgBadge} ${circuitBadge(a.circuitState || 'closed')}</div>
+      ${a.orgId ? `<div class="card-row"><span>Organization</span><span>${a.orgId}</span></div>` : ''}
+      ${a.namespaceId ? `<div class="card-row"><span>Namespace</span><span>${a.namespaceId}</span></div>` : ''}
+      <div class="card-row"><span>Capabilities</span><span>${(a.capabilities || []).join(', ')}</span></div>
+      <div class="card-row"><span>Invocations</span><span>${fmtN(spend.invocationCount)}</span></div>
+      <div class="card-row"><span>Total Tokens</span><span>${fmtN((spend.totalInputTokens || 0) + (spend.totalOutputTokens || 0))}</span></div>
+      <div class="card-row"><span>Total Cost</span><span>${fmt$(spend.totalCost)}</span></div>
+      ${budget ? `<div class="card-row"><span>Budget (day)</span><span>${fmtN(budget.currentDayUsage)} / ${fmtN(budget.maxTokensPerDay)}</span></div>
+      <div class="budget-bar"><div class="budget-fill" style="width:${budgetPct}%;background:${budgetColor}"></div></div>` : ''}
+      <div class="card-row"><span>Allowed Tools</span><span>${(a.allowedTools || []).join(', ') || 'all'}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function renderPolicies() {
+  const body = document.getElementById('policyBody');
+  let events = allData.policyLog;
+  if (currentFilter === 'allow') events = events.filter(e => e.data?.policyDecision?.allowed);
+  if (currentFilter === 'deny') events = events.filter(e => e.data?.policyDecision && !e.data.policyDecision.allowed);
+  if (events.length === 0) { body.innerHTML = '<tr><td colspan="6" class="empty">No policy decisions recorded.</td></tr>'; return; }
+  body.innerHTML = events.map(e => {
+    const d = e.data?.policyDecision || {};
+    return `<tr>
+      <td style="color:var(--faint);font-variant-numeric:tabular-nums">${relTime(e.timestamp)}</td>
+      <td>${trunc(e.data?.agentId || '', 18)}</td>
+      <td>${e.data?.contractId || ''}</td>
+      <td>${d.allowed ? '<span class="badge badge-success">ALLOW</span>' : '<span class="badge badge-error">DENY</span>'}</td>
+      <td style="color:var(--muted)">${d.ruleId || ''}</td>
+      <td style="color:var(--muted);font-size:12px">${d.reason || ''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderDeadLetters() {
+  const body = document.getElementById('deadBody');
+  if (allData.deadLetters.length === 0) { body.innerHTML = '<tr><td colspan="7" class="empty">No dead letters. All tasks completed or retried successfully.</td></tr>'; return; }
+  body.innerHTML = allData.deadLetters.map(dl => `<tr>
+    <td style="font-family:monospace;font-size:11px;color:var(--faint)">${trunc(dl.id, 10)}</td>
+    <td>${dl.contractId || dl.envelope?.contractId || ''}</td>
+    <td style="color:var(--muted);font-size:12px">${trunc(dl.reason, 40)}</td>
+    <td>${dl.attempts?.length || 0}</td>
+    <td style="color:var(--faint)">${relTime(dl.createdAt)}</td>
+    <td>${dl.resolved ? '<span class="badge badge-muted">Resolved</span>' : '<span class="badge badge-error">Unresolved</span>'}</td>
+    <td>${!dl.resolved ? `<button class="btn btn-sm btn-primary" onclick="resolveDeadLetter('${dl.id}')">Resolve</button>` : ''}</td>
+  </tr>`).join('');
+}
+
+function renderApprovals() {
+  const approvals = allData.approvals || [];
+  const badge = document.getElementById('approvalBadge');
+  const section = document.getElementById('approvalsSection');
+  const list = document.getElementById('approvalsList');
+  if (approvals.length === 0) { badge.style.display = 'none'; section.style.display = 'none'; return; }
+  badge.style.display = 'inline'; document.getElementById('approvalCount').textContent = approvals.length;
+  section.style.display = 'block';
+  list.innerHTML = approvals.map(a => `
+    <div class="approval-card">
+      <div><strong>${a.contractId || a.envelope?.contractId || ''}</strong> from <span style="color:var(--muted)">${a.callerId || a.envelope?.caller?.agentId || ''}</span></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">${relTime(a.createdAt)}</div>
+      <div class="approval-actions">
+        <button class="btn btn-sm btn-success" onclick="approveRequest('${a.approvalId || a.id}')">Approve</button>
+        <button class="btn btn-sm btn-error" onclick="denyRequest('${a.approvalId || a.id}')">Deny</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderFederation() {
+  const body = document.getElementById('grantsBody');
+  let grants = allData.grants || [];
+  if (currentGrantFilter !== 'all') grants = grants.filter(g => g.status === currentGrantFilter);
+  if (grants.length === 0) {
+    body.innerHTML = '<tr><td colspan="7" class="empty">No federation grants.</td></tr>';
+    return;
+  }
+  body.innerHTML = grants.map(g => {
+    const usage = allData.grantUsages[g.grantId];
+    const tokensUsed = usage?.tokensUsed || 0;
+    const costUsed = usage?.costUsed || 0;
+    return `<tr>
+      <td>${g.fromOrgId}</td>
+      <td>${g.toOrgId}</td>
+      <td style="color:var(--muted);font-size:12px">${(g.capabilities || []).join(', ') || 'all'}</td>
+      <td>${grantStatusBadge(g.status)}</td>
+      <td style="min-width:140px">${usageBar(tokensUsed, g.maxTokensPerDay)}</td>
+      <td style="min-width:140px">${usageBar(costUsed, g.maxCostPerDay)}</td>
+      <td style="color:var(--faint)">${relTime(g.createdAt)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderOrganizations() {
+  const grid = document.getElementById('orgsGrid');
+  const orgs = allData.orgs || [];
+  if (orgs.length === 0) { grid.innerHTML = '<div class="empty">No organizations registered.</div>'; return; }
+  // Count agents per org
+  const agentsByOrg = {};
+  (allData.agents || []).forEach(a => {
+    if (a.orgId) { agentsByOrg[a.orgId] = (agentsByOrg[a.orgId] || 0) + 1; }
+  });
+  grid.innerHTML = orgs.map(org => {
+    const agentCount = agentsByOrg[org.orgId] || 0;
+    return `<div class="card">
+      <div class="card-title">${org.name} ${orgTierBadge(org.tier)}</div>
+      <div class="card-row"><span>Org ID</span><span style="font-family:monospace;font-size:12px">${org.orgId}</span></div>
+      <div class="card-row"><span>Agents</span><span>${agentCount}</span></div>
+      <div class="card-row"><span>Created</span><span>${relTime(org.createdAt)}</span></div>
+      <div style="margin-top:8px">
+        <div class="ns-toggle" onclick="toggleNamespaces('${org.orgId}', this)">▸ Namespaces</div>
+        <div class="ns-list" id="ns-${org.orgId}"></div>
+      </div>
+      <div style="margin-top:4px">
+        <div class="ns-toggle" onclick="toggleApiKeys('${org.orgId}', this)">▸ API Keys</div>
+        <div class="ns-list" id="keys-${org.orgId}"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function toggleNamespaces(orgId, el) {
+  const container = document.getElementById('ns-' + orgId);
+  if (container.classList.contains('open')) {
+    container.classList.remove('open');
+    el.textContent = '▸ Namespaces';
+    return;
+  }
+  el.textContent = '▾ Namespaces';
+  try {
+    const res = await fetch(`/api/v1/orgs/${orgId}/namespaces`);
+    const j = await res.json();
+    const nss = j.data || [];
+    if (nss.length === 0) {
+      container.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:4px 0">No namespaces</div>';
+    } else {
+      container.innerHTML = nss.map(ns => `
+        <div style="padding:4px 0;border-bottom:1px solid var(--border)">
+          <div style="font-size:13px;font-weight:500">${ns.name}</div>
+          ${ns.quotas ? `
+            <div class="usage-label" style="margin-top:4px"><span>Agents</span><span>${ns.quotas.maxAgents}</span></div>
+            <div class="usage-label"><span>Tokens/day</span><span>${fmtN(ns.quotas.maxTokensPerDay)}</span></div>
+            <div class="usage-label"><span>Cost/day</span><span>$${(ns.quotas.maxCostPerDay || 0).toFixed(2)}</span></div>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+  } catch { container.innerHTML = '<div style="color:var(--error);font-size:12px">Failed to load</div>'; }
+  container.classList.add('open');
+}
+
+async function toggleApiKeys(orgId, el) {
+  const container = document.getElementById('keys-' + orgId);
+  if (container.classList.contains('open')) {
+    container.classList.remove('open');
+    el.textContent = '▸ API Keys';
+    return;
+  }
+  el.textContent = '▾ API Keys';
+  try {
+    const res = await fetch(`/api/v1/api-keys/${orgId}`);
+    const j = await res.json();
+    const keys = j.data || [];
+    if (keys.length === 0) {
+      container.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:4px 0">No API keys</div>';
+    } else {
+      container.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:4px 0">${keys.length} key(s)</div>` +
+        keys.map(k => `<div style="padding:2px 0;font-size:12px;color:var(--faint)">
+          ${trunc(k.keyId, 12)} — scopes: ${(k.scopes || []).join(', ')} ${k.lastUsedAt ? '— last used: ' + relTime(k.lastUsedAt) : ''}
+        </div>`).join('');
+    }
+  } catch { container.innerHTML = '<div style="color:var(--error);font-size:12px">Failed to load</div>'; }
+  container.classList.add('open');
+}
+
+// === EXCHANGE ===
+document.getElementById('exchangeViewBar')?.addEventListener('click', e => {
+  if (!e.target.classList.contains('filter-btn')) return;
+  document.querySelectorAll('#exchangeViewBar .filter-btn').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  currentExchangeView = e.target.dataset.eview;
+  document.getElementById('exchange-marketplace').style.display = currentExchangeView === 'marketplace' ? '' : 'none';
+  document.getElementById('exchange-provider').style.display = currentExchangeView === 'provider' ? '' : 'none';
+  document.getElementById('exchange-billing').style.display = currentExchangeView === 'billing' ? '' : 'none';
+  renderExchange();
+});
+
+function categoryBadge(cat) {
+  return `<span class="badge cat-${cat || 'custom'}">${(cat || 'custom').toUpperCase()}</span>`;
+}
+
+function pricingBadge(pricing) {
+  if (!pricing) return '';
+  const model = pricing.model || 'free';
+  let label = 'Free';
+  if (model === 'per_request') label = (pricing.perRequestCost || 0) + ' credits/req';
+  else if (model === 'per_token') label = 'Per token';
+  else if (model === 'subscription') label = (pricing.subscriptionRate || 0) + ' credits/day';
+  return `<span class="badge price-${model}">${label}</span>`;
+}
+
+function ratingStars(avg, count) {
+  const full = Math.round(avg || 0);
+  let s = '<span class="stars">';
+  for (let i = 1; i <= 5; i++) s += i <= full ? '★' : '<span class="empty">☆</span>';
+  s += '</span>';
+  if (count > 0) s += ` <span style="font-size:11px;color:var(--muted)">(${count})</span>`;
+  return s;
+}
+
+function listingStatusBadge(status) {
+  if (status === 'published') return '<span class="badge badge-success">PUBLISHED</span>';
+  if (status === 'deprecated') return '<span class="badge badge-muted">DEPRECATED</span>';
+  return `<span class="badge badge-muted">${(status || '').toUpperCase()}</span>`;
+}
+
+function renderExchange() {
+  if (currentExchangeView === 'marketplace') renderMarketplace();
+  else if (currentExchangeView === 'provider') renderProvider();
+  else if (currentExchangeView === 'billing') renderBilling();
+}
+
+function renderMarketplace() {
+  const grid = document.getElementById('exchangeGrid');
+  const listings = allData.exchangeListings || [];
+
+  // Build category filter buttons
+  const cats = ['all', 'research', 'analysis', 'code', 'writing', 'data', 'compliance'];
+  document.getElementById('exchangeCategoryFilters').innerHTML = cats.map(c =>
+    `<button class="filter-btn${currentExchangeCategory === c ? ' active' : ''}" onclick="setExchangeCategory('${c}')">${c === 'all' ? 'All' : c.charAt(0).toUpperCase() + c.slice(1)}</button>`
+  ).join('');
+
+  if (listings.length === 0) {
+    grid.innerHTML = '<div class="empty">No services published yet. Services will appear here when organizations publish their agent capabilities to the exchange.</div>';
+    return;
+  }
+
+  const searchTerm = (document.getElementById('exchangeSearch')?.value || '').toLowerCase();
+  const sortBy = document.getElementById('exchangeSort')?.value || 'popular';
+
+  let filtered = listings.filter(l => {
+    if (currentExchangeCategory !== 'all' && l.category !== currentExchangeCategory) return false;
+    if (searchTerm) {
+      const text = (l.name + ' ' + l.description + ' ' + (l.tags || []).join(' ')).toLowerCase();
+      if (!text.includes(searchTerm)) return false;
+    }
+    return true;
+  });
+
+  if (sortBy === 'popular') filtered.sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0));
+  else if (sortBy === 'newest') filtered.sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''));
+  else if (sortBy === 'rating') filtered.sort((a, b) => (b.ratingAvg || 0) - (a.ratingAvg || 0));
+
+  // Build org lookup
+  const orgMap = {};
+  (allData.orgs || []).forEach(o => orgMap[o.orgId] = o);
+
+  grid.innerHTML = filtered.map(l => {
+    const org = orgMap[l.orgId];
+    const orgName = org ? org.name : l.orgId;
+    return `<div class="card">
+      <div class="card-title">${l.name} ${listingStatusBadge(l.status)}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">${orgName}</div>
+      <div style="margin-bottom:8px">${categoryBadge(l.category)} ${pricingBadge(l.pricing)}</div>
+      <div style="margin-bottom:6px">${ratingStars(l.ratingAvg, l.ratingCount)}</div>
+      <div class="card-row"><span>Invocations</span><span>${fmtN(l.usageCount || 0)}</span></div>
+      ${l.description ? `<div style="font-size:12px;color:var(--muted);margin-top:6px">${trunc(l.description, 100)}</div>` : ''}
+    </div>`;
+  }).join('') || '<div class="empty">No services match your filters.</div>';
+}
+
+function setExchangeCategory(cat) {
+  currentExchangeCategory = cat;
+  renderExchange();
+}
+
+function renderProvider() {
+  const body = document.getElementById('providerBody');
+  const listings = allData.exchangeListings || [];
+
+  if (listings.length === 0) {
+    body.innerHTML = '<tr><td colspan="6" class="empty">No services published.</td></tr>';
+    return;
+  }
+
+  body.innerHTML = listings.map(l => {
+    const revenue = (l.usageCount || 0) * ((l.pricing?.perRequestCost || 0) * 0.9);
+    // Simple earnings bar (inline SVG)
+    const maxBar = 120;
+    const barW = Math.min(maxBar, Math.max(8, revenue > 0 ? (revenue / 100) * maxBar : 0));
+    const earningsBar = `<svg width="${maxBar}" height="16"><rect x="0" y="2" width="${barW}" height="12" rx="3" fill="var(--primary)" opacity="0.7"/><text x="${barW + 4}" y="12" fill="var(--muted)" font-size="10">${revenue.toFixed(1)}</text></svg>`;
+    return `<tr>
+      <td><strong>${l.name}</strong><div style="font-size:11px;color:var(--muted)">${l.orgId}</div></td>
+      <td>${listingStatusBadge(l.status)}</td>
+      <td style="font-variant-numeric:tabular-nums">${fmtN(l.usageCount || 0)}</td>
+      <td style="font-variant-numeric:tabular-nums">${revenue.toFixed(1)} credits</td>
+      <td>${ratingStars(l.ratingAvg, l.ratingCount)}</td>
+      <td>${earningsBar}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderBilling() {
+  const stats = allData.exchangeStats || {};
+
+  // Credit balance card
+  document.getElementById('billingStats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total Exchange Listings</div><div class="stat-value">${stats.totalListings || 0}</div></div>
+    <div class="stat-card"><div class="stat-label">Total Transactions</div><div class="stat-value">${fmtN(stats.totalTransactions || 0)}</div></div>
+    <div class="stat-card"><div class="stat-label">Credits Transacted</div><div class="stat-value">${(stats.totalCredits || 0).toFixed(1)}</div></div>`;
+
+  const body = document.getElementById('billingBody');
+  body.innerHTML = '<tr><td colspan="5" class="empty">Connect an API key to view your transaction history.</td></tr>';
+}
+
+// === ACTIONS ===
+function openSubmitModal() { document.getElementById('submitModal').classList.add('open'); document.getElementById('taskInput').focus(); }
+function closeSubmitModal() { document.getElementById('submitModal').classList.remove('open'); }
+
+async function submitTask() {
+  const input = document.getElementById('taskInput');
+  const request = input.value.trim();
+  if (!request) return;
+  try {
+    await fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ request }) });
+    input.value = '';
+    closeSubmitModal();
+    setTimeout(fetchAll, 500);
+  } catch(e) { alert('Error submitting: ' + e.message); }
+}
+
+async function approveRequest(id) {
+  await fetch(`/api/approve/${id}`, { method: 'POST' });
+  setTimeout(fetchAll, 300);
+}
+
+async function denyRequest(id) {
+  await fetch(`/api/deny/${id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: 'Denied by operator' }) });
+  setTimeout(fetchAll, 300);
+}
+
+async function resolveDeadLetter(id) {
+  await fetch(`/api/dead-letters/${id}/resolve`, { method: 'POST' });
+  setTimeout(fetchAll, 300);
+}
+
+function openGrantModal() { document.getElementById('grantModal').classList.add('open'); document.getElementById('grantFromOrg').focus(); }
+function closeGrantModal() { document.getElementById('grantModal').classList.remove('open'); }
+
+async function createGrant() {
+  const fromOrgId = document.getElementById('grantFromOrg').value.trim();
+  const toOrgId = document.getElementById('grantToOrg').value.trim();
+  const caps = document.getElementById('grantCaps').value.trim();
+  const maxTokens = parseInt(document.getElementById('grantMaxTokens').value) || 50000;
+  const maxCost = parseFloat(document.getElementById('grantMaxCost').value) || 10;
+  if (!fromOrgId || !toOrgId) { alert('From Org and To Org are required'); return; }
+  try {
+    await fetch('/api/v1/grants', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        grantId: 'grant-' + Date.now(),
+        fromOrgId, toOrgId,
+        capabilities: caps ? caps.split(',').map(s => s.trim()) : [],
+        maxTokensPerDay: maxTokens, maxCostPerDay: maxCost,
+      }),
+    });
+    closeGrantModal();
+    setTimeout(fetchAll, 300);
+  } catch(e) { alert('Error creating grant: ' + e.message); }
+}
+
+// === POLICY FILTER ===
+document.querySelector('.filter-bar')?.addEventListener('click', e => {
+  if (!e.target.classList.contains('filter-btn')) return;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  currentFilter = e.target.dataset.filter;
+  renderPolicies();
+});
+
+// === GRANT FILTER ===
+document.getElementById('grantFilterBar')?.addEventListener('click', e => {
+  if (!e.target.classList.contains('filter-btn')) return;
+  document.querySelectorAll('#grantFilterBar .filter-btn').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  currentGrantFilter = e.target.dataset.gfilter;
+  renderFederation();
+});
+
+// === KEYBOARD ===
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeSubmitModal(); closeGrantModal(); }
+  if (e.key === 'Enter' && document.getElementById('submitModal').classList.contains('open')) submitTask();
+});
+
+// === INIT ===
+fetchAll();
+setInterval(fetchAll, 5000);
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "molt-monorepo",
+  "private": true,
+  "packageManager": "npm@10.8.2",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "build": "turbo build",
+    "test": "turbo test",
+    "lint": "turbo lint",
+    "clean": "turbo clean",
+    "typecheck": "turbo typecheck"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0"
+  }
+}
