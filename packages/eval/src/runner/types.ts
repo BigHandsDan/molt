@@ -46,6 +46,7 @@ export interface EvalRun {
   id: string;
   suiteId: string;
   suiteName: string;
+  agentId?: string;
   timestamp: number;
   caseResults: CaseResult[];
   aggregateScores: Record<string, number>;

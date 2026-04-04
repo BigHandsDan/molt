@@ -50,3 +50,7 @@ export {
 } from './integrations/molt-permit.js';
 export type { TrustTierRecommendation, PermitTrustTier, MeshTrustTier } from './integrations/molt-permit.js';
 export { MoltDoorEvalClient, type MoltDoorEvalConfig, type EvalRating } from './integrations/molt-door.js';
+
+// Observability — Agent Self-Reporting
+export { AgentObserver } from './observability/index.js';
+export type { AgentSelfReport, TrendDirection } from './observability/index.js';

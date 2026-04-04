@@ -159,6 +159,30 @@ export {
 // Exchange — Reviews
 export { ServiceReview, ReviewResponse, ReviewRegistry } from './exchange/reviews.js';
 
+// Healing — Self-Healing / Adaptive Orchestration
+export {
+  HealingStrategy,
+  FailureType,
+  HealingPolicy,
+  HealingStrategyConfig,
+  HealingAttempt,
+  HealingReport,
+  HealingStats,
+  HealingFailure,
+  HealingDispatchFn,
+} from './healing/index.js';
+export { SelfHealer } from './healing/index.js';
+
+// Negotiation — Agent-to-Agent Negotiation Protocol
+export {
+  NegotiationStatus,
+  NegotiationProposal,
+  NegotiationTerms,
+  NegotiationEvent,
+  NegotiationAgreement,
+} from './negotiation/index.js';
+export { Negotiator } from './negotiation/index.js';
+
 // Discovery — Tool Discovery & Capability Registration
 export {
   AgentCapability,

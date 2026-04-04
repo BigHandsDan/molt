@@ -20,6 +20,7 @@ export class EvalStore {
         id TEXT PRIMARY KEY,
         suite_id TEXT NOT NULL,
         suite_name TEXT NOT NULL,
+        agent_id TEXT,
         timestamp INTEGER NOT NULL,
         verdict TEXT NOT NULL,
         duration_ms INTEGER NOT NULL,
@@ -79,9 +80,9 @@ export class EvalStore {
   saveRun(run: EvalRun): void {
     const tx = this.db.transaction(() => {
       this.db.prepare(`
-        INSERT INTO eval_runs (id, suite_id, suite_name, timestamp, verdict, duration_ms, aggregate_scores, metadata)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(run.id, run.suiteId, run.suiteName, run.timestamp, run.verdict, run.durationMs, JSON.stringify(run.aggregateScores), JSON.stringify(run.metadata));
+        INSERT INTO eval_runs (id, suite_id, suite_name, agent_id, timestamp, verdict, duration_ms, aggregate_scores, metadata)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(run.id, run.suiteId, run.suiteName, run.agentId ?? null, run.timestamp, run.verdict, run.durationMs, JSON.stringify(run.aggregateScores), JSON.stringify(run.metadata));
 
       const caseStmt = this.db.prepare(`
         INSERT INTO case_results (run_id, case_id, case_name, passed, duration_ms, error)
@@ -106,7 +107,7 @@ export class EvalStore {
   /** Retrieve an eval run by ID. */
   getRun(runId: string): EvalRun | null {
     const row = this.db.prepare('SELECT * FROM eval_runs WHERE id = ?').get(runId) as {
-      id: string; suite_id: string; suite_name: string; timestamp: number; verdict: string;
+      id: string; suite_id: string; suite_name: string; agent_id: string | null; timestamp: number; verdict: string;
       duration_ms: number; aggregate_scores: string; metadata: string;
     } | undefined;
 
@@ -146,6 +147,7 @@ export class EvalStore {
       id: row.id,
       suiteId: row.suite_id,
       suiteName: row.suite_name,
+      agentId: row.agent_id ?? undefined,
       timestamp: row.timestamp,
       verdict: row.verdict as EvalRun['verdict'],
       durationMs: row.duration_ms,
@@ -164,6 +166,14 @@ export class EvalStore {
       id: string; suite_name: string; verdict: string; timestamp: number;
     }>;
     return rows.map((r) => ({ id: r.id, suiteName: r.suite_name, verdict: r.verdict, timestamp: r.timestamp }));
+  }
+
+  /** Get eval runs for a specific agent. */
+  getRunsByAgent(agentId: string, limit = 50): EvalRun[] {
+    const rows = this.db.prepare(
+      'SELECT id FROM eval_runs WHERE agent_id = ? ORDER BY timestamp DESC LIMIT ?',
+    ).all(agentId, limit) as Array<{ id: string }>;
+    return rows.map((r) => this.getRun(r.id)).filter((r): r is EvalRun => r != null);
   }
 
   /** Delete an eval run and its associated data. */

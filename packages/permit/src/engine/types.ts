@@ -38,11 +38,12 @@ export interface ScopedCredential {
 }
 
 export interface PolicyDecision {
-  decision: 'allow' | 'deny';
+  decision: 'allow' | 'deny' | 'escalated';
   reasons: string[];
   matchedPolicies: string[];
   scopedCredential?: ScopedCredential;
   auditId: string;
+  escalationId?: string;
 }
 
 export interface ActionBudget {

@@ -10,6 +10,13 @@ import { JitTokenManager, JitToken } from './credentials/jit-tokens.js';
 import { MoltDoorClient, MoltDoorConfig } from './integrations/moltdoor.js';
 import { MoltCaptchaClient, MoltCaptchaClientConfig, MoltCaptchaChallenge, MoltCaptchaRegistration } from './integrations/moltcaptcha.js';
 import { createMcpMiddleware, createToolCallInterceptor, ToolCallInterceptor } from './middleware/mcp-middleware.js';
+import { EscalationManager } from './escalation/index.js';
+import { EscalationPolicy } from './escalation/types.js';
+
+export interface EscalationConfig {
+  enabled: boolean;
+  policies?: EscalationPolicy[];
+}
 
 export interface MoltPermitConfig {
   policies?: string;
@@ -24,6 +31,7 @@ export interface MoltPermitConfig {
     ttlSeconds?: number;
     singleUse?: boolean;
   };
+  escalation?: EscalationConfig;
 }
 
 export class MoltPermit {
@@ -37,6 +45,7 @@ export class MoltPermit {
   private moltcaptcha: MoltCaptchaClient;
   private config: MoltPermitConfig;
   private rollbackRegistry: Map<string, () => Promise<void>> = new Map();
+  private escalationManager: EscalationManager | null = null;
 
   constructor(config: MoltPermitConfig = {}) {
     this.config = config;
@@ -67,6 +76,16 @@ export class MoltPermit {
     this.moltcaptcha = new MoltCaptchaClient(
       config.moltcaptcha || config.moltdoor?.baseUrl
     );
+
+    // Initialize escalation manager if configured
+    if (config.escalation?.enabled) {
+      this.escalationManager = new EscalationManager(':memory:');
+      if (config.escalation.policies) {
+        for (const policy of config.escalation.policies) {
+          this.escalationManager.registerPolicy(policy);
+        }
+      }
+    }
 
     // Load policies if path provided
     if (config.policies) {
@@ -181,6 +200,24 @@ export class MoltPermit {
       this.budgetTracker.record(enrichedRequest.agent.id, enrichedRequest.action.type);
     }
 
+    // Auto-escalate on deny if escalation is configured
+    if (result.decision === 'deny' && this.escalationManager) {
+      const escalation = this.escalationManager.escalate(
+        enrichedRequest.agent.id,
+        { type: 'policy-deny' },
+        {
+          action: enrichedRequest.action.type,
+          reason: result.reasons.join('; ') || 'Policy denied the action',
+          metadata: {
+            resource: enrichedRequest.action.resource,
+            environment: enrichedRequest.context.environment,
+          },
+        },
+      );
+      decision.decision = 'escalated';
+      decision.escalationId = escalation.id;
+    }
+
     // Log to audit
     const entry = this.auditLogger.log(enrichedRequest, decision);
     decision.auditId = entry.id;
@@ -285,8 +322,16 @@ export class MoltPermit {
     });
   }
 
+  // Escalation
+  getEscalationManager(): EscalationManager | null {
+    return this.escalationManager;
+  }
+
   // Cleanup
   close(): void {
+    if (this.escalationManager) {
+      this.escalationManager.close();
+    }
     this.auditStore.close();
   }
 
@@ -344,3 +389,17 @@ export { MoltCaptchaClient } from './integrations/moltcaptcha.js';
 export { createMcpMiddleware, createToolCallInterceptor } from './middleware/mcp-middleware.js';
 export type { ToolCallInterceptor } from './middleware/mcp-middleware.js';
 export { createServer } from './server/standalone.js';
+
+// Escalation — Human-in-the-Loop Escalation
+export { EscalationManager } from './escalation/index.js';
+export type {
+  EscalationSeverity,
+  EscalationStatus,
+  EscalationChannel,
+  EscalationPolicy,
+  EscalationTrigger,
+  EscalationRouting,
+  EscalationRequest,
+  EscalationContext,
+  EscalationResolution,
+} from './escalation/index.js';
