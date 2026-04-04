@@ -158,3 +158,12 @@ export {
 
 // Exchange — Reviews
 export { ServiceReview, ReviewResponse, ReviewRegistry } from './exchange/reviews.js';
+
+// Discovery — Tool Discovery & Capability Registration
+export {
+  AgentCapability,
+  CapabilityQuery,
+  CapabilityStatus,
+  CapabilityPerformance,
+} from './discovery/types.js';
+export { CapabilityRegistry } from './discovery/registry.js';
