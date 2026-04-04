@@ -41,7 +41,8 @@
   "dependencies": {
     "@molt/captcha": "*",
     "@molt/permit": "*",
-    "@molt/mesh": "*"
+    "@molt/mesh": "*",
+    "@molt/eval": "*"
   },
   "devDependencies": {
     "tsup": "^8.0.0",

@@ -14,9 +14,10 @@ Molt is a monorepo containing three packages that form a complete governance sta
 | [`@molt/captcha`](packages/captcha) | Reverse CAPTCHA — SMHL challenge engine for AI verification | 1.0.0 | 51 |
 | [`@molt/permit`](packages/permit) | Cedar-based policy engine with SQLite audit and JIT tokens | 0.1.0 | 71 |
 | [`@molt/mesh`](packages/mesh) | Agent interoperability bus with federation and exchange | 0.1.0 | 467 |
-| [`molt`](packages/molt) | Meta-package that re-exports all three | 0.1.0 | — |
+| [`@molt/eval`](packages/eval) | Agent evaluation engine — metrics, regression detection, release gating | 0.1.0 | 108 |
+| [`molt`](packages/molt) | Meta-package that re-exports all four | 0.1.0 | — |
 
-**Total: 589 tests**
+**Total: 697 tests**
 
 ## Quick Start
 
@@ -27,7 +28,7 @@ npm install
 # Build all packages
 npm run build
 
-# Run all tests (589 tests across 3 packages)
+# Run all tests (697 tests across 4 packages)
 npm test
 ```
 
@@ -38,10 +39,10 @@ npm install molt
 ```
 
 ```typescript
-import { MoltCaptcha, MoltPermit, MoltMesh } from 'molt';
+import { MoltCaptcha, MoltPermit, MoltMesh, MoltEval } from 'molt';
 
 // Or use namespaced imports
-import { captcha, permit, mesh } from 'molt';
+import { captcha, permit, mesh, eval } from 'molt';
 ```
 
 ### Using individual packages
@@ -50,6 +51,7 @@ import { captcha, permit, mesh } from 'molt';
 npm install @molt/captcha
 npm install @molt/permit
 npm install @molt/mesh
+npm install @molt/eval
 ```
 
 ## Architecture
@@ -57,19 +59,20 @@ npm install @molt/mesh
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │                        Molt Ecosystem                        │
-├──────────────┬──────────────────┬────────────────────────────┤
-│  @molt/captcha │   @molt/permit   │        @molt/mesh          │
-│               │                  │                            │
-│  SMHL reverse │  Cedar policies  │  Agent bus + contracts     │
-│  CAPTCHA for  │  Audit logging   │  Federation + exchange     │
-│  AI verify    │  Budget tracking │  Circuit breakers + trace  │
-│               │  JIT tokens      │  Gateway + webhooks        │
-└──────────────┴──────────────────┴────────────────────────────┘
+├──────────────┬──────────────────┬────────────────────────────┬───────────────────┤
+│  @molt/captcha │   @molt/permit   │        @molt/mesh          │    @molt/eval     │
+│               │                  │                            │                   │
+│  SMHL reverse │  Cedar policies  │  Agent bus + contracts     │  Metrics engine   │
+│  CAPTCHA for  │  Audit logging   │  Federation + exchange     │  Regression check │
+│  AI verify    │  Budget tracking │  Circuit breakers + trace  │  Release gating   │
+│               │  JIT tokens      │  Gateway + webhooks        │  Adversarial gen  │
+└──────────────┴──────────────────┴────────────────────────────┴───────────────────┘
 ```
 
 - **@molt/captcha** generates semantic-mathematical challenges that are trivial for LLMs but impossible for humans, providing proof-of-AI identity.
 - **@molt/permit** evaluates Cedar policies to enforce scoped, auditable, and reversible actions based on agent trust tiers.
 - **@molt/mesh** provides the interoperability bus — shared contracts, adapter-based translation, policy enforcement, federation across organizations, and a service exchange marketplace.
+- **@molt/eval** is the evaluation engine — pluggable metrics, regression detection, release gating, adversarial test generation, and integrations with MoltMesh, MoltPermit, and MoltDoor.
 
 ## Development
 
@@ -110,7 +113,8 @@ molt/
 │   ├── captcha/     # @molt/captcha — AI verification
 │   ├── permit/      # @molt/permit — Policy enforcement
 │   ├── mesh/        # @molt/mesh — Agent interoperability bus
-│   └── molt/        # molt — Meta-package re-exporting all three
+│   ├── eval/        # @molt/eval — Agent evaluation engine
+│   └── molt/        # molt — Meta-package re-exporting all four
 ├── turbo.json       # Turborepo pipeline config
 ├── tsconfig.base.json # Shared TypeScript config
 └── package.json     # Root workspace config
