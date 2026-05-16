@@ -1,0 +1,56 @@
+name: Bug report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report. Molt is experimental, so even rough reports are welcome.
+  - type: dropdown
+    id: package
+    attributes:
+      label: Affected package
+      options:
+        - "@molt/captcha"
+        - "@molt/permit"
+        - "@molt/mesh"
+        - "@molt/eval"
+        - "@molt/memory"
+        - "molt (meta-package)"
+        - "Repo tooling / build"
+        - "Other / not sure"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug and what you expected to happen instead.
+      placeholder: "When I called X, I expected Y, but got Z."
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: A minimal reproduction is hugely appreciated.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+      render: markdown
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Node version, OS, package version, etc.
+      placeholder: |
+        - Node: 20.x
+        - OS: macOS 14
+        - Package version: 0.x
+      render: markdown
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / stack trace
+      render: shell

@@ -1,0 +1,39 @@
+name: Feature request / idea
+description: Suggest a new idea, feature, or integration
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ideas, half-formed thoughts, and "what if Molt did X" suggestions are all welcome.
+  - type: dropdown
+    id: package
+    attributes:
+      label: Related package
+      options:
+        - "@molt/captcha"
+        - "@molt/permit"
+        - "@molt/mesh"
+        - "@molt/eval"
+        - "@molt/memory"
+        - "molt (meta-package)"
+        - "Cross-cutting / new package"
+        - "Other"
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      placeholder: "Today it's hard to..."
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed direction
+      description: Even rough sketches help. APIs, diagrams, or "feels like X" comparisons all work.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
