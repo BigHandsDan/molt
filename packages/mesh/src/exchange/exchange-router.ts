@@ -3,6 +3,7 @@ import { MoltMesh } from '../bus.js';
 import { TrustTier } from '../contracts/schema.js';
 import { AgentIdentity } from '../identity/types.js';
 import { InsufficientBalanceError } from '../errors.js';
+import { paramString } from '../gateway/params.js';
 
 /** Dependencies for the exchange HTTP router. */
 export interface ExchangeRouterDeps {
@@ -34,12 +35,12 @@ export function createExchangeRouter(deps: ExchangeRouterDeps): ExpressRouter {
   // GET /catalog/:listingId — Service detail with reviews
   router.get('/catalog/:listingId', (req: Request, res: Response) => {
     try {
-      const listing = bus.getService(req.params.listingId);
+      const listing = bus.getService(paramString(req.params.listingId));
       if (!listing) {
         res.status(404).json({ success: false, error: 'Listing not found' });
         return;
       }
-      const reviews = bus.getReviews(req.params.listingId);
+      const reviews = bus.getReviews(paramString(req.params.listingId));
       res.json({ success: true, data: { ...listing, reviews } });
     } catch (err) {
       res.status(500).json({ success: false, error: (err as Error).message });
@@ -90,7 +91,7 @@ export function createExchangeRouter(deps: ExchangeRouterDeps): ExpressRouter {
   router.post('/invoke/:listingId', async (req: Request, res: Response) => {
     try {
       const org = req.org!;
-      const listing = bus.getService(req.params.listingId);
+      const listing = bus.getService(paramString(req.params.listingId));
       if (!listing) {
         res.status(404).json({ success: false, error: 'Listing not found' });
         return;
@@ -208,7 +209,7 @@ export function createExchangeRouter(deps: ExchangeRouterDeps): ExpressRouter {
         return;
       }
 
-      const subscription = bus.subscribe(org.orgId, req.params.listingId, plan);
+      const subscription = bus.subscribe(org.orgId, paramString(req.params.listingId), plan);
       res.json({ success: true, data: subscription });
     } catch (err) {
       if (err instanceof InsufficientBalanceError) {
@@ -233,7 +234,7 @@ export function createExchangeRouter(deps: ExchangeRouterDeps): ExpressRouter {
   // DELETE /subscriptions/:subscriptionId — Cancel subscription
   router.delete('/subscriptions/:subscriptionId', (req: Request, res: Response) => {
     try {
-      const result = bus.cancelSubscription(req.params.subscriptionId, true);
+      const result = bus.cancelSubscription(paramString(req.params.subscriptionId), true);
       if (!result) {
         res.status(404).json({ success: false, error: 'Subscription not found' });
         return;
@@ -338,7 +339,7 @@ export function createExchangeRouter(deps: ExchangeRouterDeps): ExpressRouter {
   // GET /reviews/:listingId — Reviews for a listing
   router.get('/reviews/:listingId', (req: Request, res: Response) => {
     try {
-      const reviews = bus.getReviews(req.params.listingId);
+      const reviews = bus.getReviews(paramString(req.params.listingId));
       res.json({ success: true, data: reviews });
     } catch (err) {
       res.status(500).json({ success: false, error: (err as Error).message });
@@ -354,7 +355,7 @@ export function createExchangeRouter(deps: ExchangeRouterDeps): ExpressRouter {
         return;
       }
 
-      const review = bus.respondToReview(req.params.reviewId, body);
+      const review = bus.respondToReview(paramString(req.params.reviewId), body);
       if (!review) {
         res.status(404).json({ success: false, error: 'Review not found' });
         return;

@@ -3,6 +3,7 @@ import { MoltMesh } from '../bus.js';
 import { TrustTier } from '../contracts/schema.js';
 import { AgentIdentity } from '../identity/types.js';
 import { WebhookRegistry } from './webhooks.js';
+import { paramString } from './params.js';
 
 /** Dependencies for the federation gateway HTTP router. */
 export interface GatewayDeps {
@@ -122,7 +123,7 @@ export function createGatewayRouter(deps: GatewayDeps): ExpressRouter {
         return;
       }
 
-      const events = bus.getTrace(req.params.traceId);
+      const events = bus.getTrace(paramString(req.params.traceId));
       if (events.length === 0) {
         res.status(404).json({ success: false, error: 'Trace not found' });
         return;
@@ -153,7 +154,7 @@ export function createGatewayRouter(deps: GatewayDeps): ExpressRouter {
       res.json({
         success: true,
         data: {
-          traceId: req.params.traceId,
+          traceId: paramString(req.params.traceId),
           status,
           output,
           error,
@@ -217,7 +218,7 @@ export function createGatewayRouter(deps: GatewayDeps): ExpressRouter {
         return;
       }
 
-      const deleted = deps.webhookRegistry.deleteWebhook(req.params.id);
+      const deleted = deps.webhookRegistry.deleteWebhook(paramString(req.params.id));
       if (!deleted) {
         res.status(404).json({ success: false, error: 'Webhook not found' });
         return;
