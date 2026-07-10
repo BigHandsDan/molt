@@ -40,8 +40,8 @@
   "author": "BigHandsDan",
   "license": "Apache-2.0",
   "dependencies": {
-    "better-sqlite3": "^11.0.0",
-    "uuid": "^9.0.0"
+    "better-sqlite3": "^12.11.1",
+    "uuid": "^14.0.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.0",
