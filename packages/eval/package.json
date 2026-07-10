@@ -48,7 +48,7 @@
     "@molt/permit": "*",
     "better-sqlite3": "^11.0.0",
     "commander": "^12.0.0",
-    "uuid": "^9.0.0"
+    "uuid": "^14.0.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.0",
