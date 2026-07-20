@@ -1,0 +1,126 @@
+name: Auto-Label Issues and PRs
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+
+jobs:
+  auto-label:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Auto-label based on title keywords
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue || context.payload.pull_request;
+            const issuePrefixes = {
+              'bug': 'bug',
+              'fix': 'bug',
+              'error': 'bug',
+              'broken': 'bug',
+              'crash': 'bug',
+              'issue': 'bug',
+              'feature': 'enhancement',
+              'add': 'enhancement',
+              'implement': 'enhancement',
+              'request': 'enhancement',
+              'docs': 'documentation',
+              'doc': 'documentation',
+              'readme': 'documentation',
+              'guide': 'documentation',
+              'tutorial': 'documentation',
+              'security': 'security',
+              'vulnerability': 'security',
+              'audit': 'security',
+              'breaking': 'breaking change',
+              'refactor': 'refactor',
+              'perf': 'performance',
+              'performance': 'performance',
+              'test': 'tests',
+              'tests': 'tests',
+            };
+
+            const packagePrefixes = {
+              'captcha': '@molt/captcha',
+              'permit': '@molt/permit',
+              'mesh': '@molt/mesh',
+              'eval': '@molt/eval',
+              'memory': '@molt/memory',
+            };
+
+            const title = issue.title.toLowerCase();
+            const labels = [];
+
+            // Check for type labels
+            for (const [keyword, label] of Object.entries(issuePrefixes)) {
+              if (title.includes(keyword)) {
+                labels.push(label);
+                break;
+              }
+            }
+
+            // Check for package labels
+            for (const [keyword, label] of Object.entries(packagePrefixes)) {
+              if (title.includes(keyword)) {
+                labels.push(label);
+              }
+            }
+
+            // If it's an issue (not a PR) and has no type label, try body
+            if (context.payload.issue && labels.length === 0) {
+              const body = (issue.body || '').toLowerCase();
+              for (const [keyword, label] of Object.entries(issuePrefixes)) {
+                if (body.includes(`## type`) && body.includes(keyword)) {
+                  labels.push(label);
+                  break;
+                }
+              }
+            }
+
+            // Add labels to issue/PR
+            if (labels.length > 0) {
+              github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: labels,
+              });
+            }
+
+      - name: Welcome first-time contributors
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Get all commits by this user
+            const allPRs = await github.rest.pulls.list({
+              owner: owner,
+              repo: repo,
+              state: 'all',
+              creator: pr.user.login,
+              per_page: 100,
+            });
+
+            // Check if this is their first PR
+            if (allPRs.data.length === 1) {
+              github.rest.issues.createComment({
+                owner: owner,
+                repo: repo,
+                issue_number: pr.number,
+                body: `🎉 Welcome @${pr.user.login}! This is your first PR to Molt. We're excited to have you contribute! 
+
+Please feel free to reach out if you have any questions. Check out our [CONTRIBUTING.md](https://github.com/${owner}/${repo}/blob/main/CONTRIBUTING.md) for guidelines.
+
+Thanks for helping grow the Molt ecosystem! 🚀`,
+              });
+            }
