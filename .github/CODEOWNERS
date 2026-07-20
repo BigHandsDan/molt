@@ -1,0 +1,16 @@
+# Molt Code Owners
+
+# Root config and common patterns
+/ @BigHandsDan
+
+# Package owners (you can expand this when you have other maintainers)
+packages/captcha/ @BigHandsDan
+packages/permit/ @BigHandsDan
+packages/mesh/ @BigHandsDan
+packages/eval/ @BigHandsDan
+packages/memory/ @BigHandsDan
+
+# Docs and CI
+*.md @BigHandsDan
+.github/ @BigHandsDan
+turbo.json @BigHandsDan
