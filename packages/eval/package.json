@@ -46,7 +46,7 @@
   "dependencies": {
     "@molt/mesh": "*",
     "@molt/permit": "*",
-    "better-sqlite3": "^12.11.1",
+    "better-sqlite3": "^13.0.2",
     "commander": "^15.0.0",
     "uuid": "^14.0.1"
   },
