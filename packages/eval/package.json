@@ -43,6 +43,9 @@
   "homepage": "https://github.com/BigHandsDan/molt/tree/main/packages/eval",
   "author": "BigHandsDan",
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
     "@molt/mesh": "*",
     "@molt/permit": "*",

@@ -47,6 +47,9 @@
   "homepage": "https://github.com/BigHandsDan/molt/tree/main/packages/permit",
   "author": "BigHandsDan",
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
     "better-sqlite3": "^13.0.3",
     "commander": "^15.0.0",
