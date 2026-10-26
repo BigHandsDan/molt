@@ -12,7 +12,8 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20, 22]
+        # better-sqlite3 13 requires Node >=22 (12.x still allowed 20.x).
+        node-version: [22, 24]
 
     steps:
       - name: Checkout

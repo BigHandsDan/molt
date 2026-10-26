@@ -38,6 +38,9 @@
   "homepage": "https://github.com/BigHandsDan/molt",
   "author": "BigHandsDan",
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
     "@molt/captcha": "*",
     "@molt/permit": "*",
@@ -47,6 +50,6 @@
   },
   "devDependencies": {
     "tsup": "^9.0.0",
-    "typescript": "^7.0.2"
+    "typescript": "^6.0.3"
   }
 }
