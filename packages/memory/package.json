@@ -43,7 +43,7 @@
     "node": ">=22"
   },
   "dependencies": {
-    "better-sqlite3": "^13.0.3",
+    "better-sqlite3": "^13.2.0",
     "uuid": "^14.0.3"
   },
   "devDependencies": {
